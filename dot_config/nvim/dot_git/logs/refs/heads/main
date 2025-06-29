@@ -1,0 +1,36 @@
+0000000000000000000000000000000000000000 4c080997d9de0c1f0f5aa92a1590fc4a2d1ceb24 Eduado Battisti <eduadobattisti@pop-os.localdomain> 1733323377 -0300	clone: from github.com:eduardobattisti/nvim.git
+4c080997d9de0c1f0f5aa92a1590fc4a2d1ceb24 618c3fedf36af1179a1ce3463c52ea2f62a01df1 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442233 -0300	commit: refactor: paste withou copying the replaced value
+618c3fedf36af1179a1ce3463c52ea2f62a01df1 0d75ba72e03778a190b3af8d4012334bacb9b823 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442249 -0300	commit: refactor: disable inlay_hint
+0d75ba72e03778a190b3af8d4012334bacb9b823 dccb3e5b867e281ef6b0e4fc57920f73e8c7c349 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442258 -0300	commit: refactor: remove git header
+dccb3e5b867e281ef6b0e4fc57920f73e8c7c349 d039fd526fc4ea9fc79d22806b7a2702a252d870 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442283 -0300	commit: feat: define tabs indent and size
+d039fd526fc4ea9fc79d22806b7a2702a252d870 d9259153106570b4f109bae23293c9358044ce47 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442298 -0300	commit: refactor: move neotree to right
+d9259153106570b4f109bae23293c9358044ce47 22c2607e666ec79e154f2936e4ed71315cc1b6c6 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442319 -0300	commit: refactor: disable inlay_hints
+22c2607e666ec79e154f2936e4ed71315cc1b6c6 ed480c3eb105100c64084b55a4eaa4348c783f91 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442368 -0300	commit: feat: position notifications in bottom right
+ed480c3eb105100c64084b55a4eaa4348c783f91 1cab4ae705ee070de9363d17aa5be7e2311605a1 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442393 -0300	commit: refactor: remove plugin
+1cab4ae705ee070de9363d17aa5be7e2311605a1 d86254f1025c108dc0c2f2b5fe1e400cd2a8bad2 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442405 -0300	commit: refactor: uses rose-pine-moon
+d86254f1025c108dc0c2f2b5fe1e400cd2a8bad2 0556bc3f32facb41959dc26c906f8197165831c4 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442418 -0300	commit: feat: enable lua_line icons
+0556bc3f32facb41959dc26c906f8197165831c4 a218364b6462f2b1a2214c6043edc11b424e19f4 Eduardo Battisti <eduadobattisti@pop-os.localdomain> 1738442470 -0300	commit: feat: require devicons on telescope
+a218364b6462f2b1a2214c6043edc11b424e19f4 ad5c6a15a9af3dc7d59b4e6d90755958179ed770 Eduardo Battisti <eduardobattisti10@gmail.com> 1739395035 -0300	commit: feat: testing commit
+ad5c6a15a9af3dc7d59b4e6d90755958179ed770 ac779f11d4e73f92f2b2651923f5471bad4e10f4 Eduardo Battisti <eduardobattisti10@gmail.com> 1739720556 -0300	commit: refactor: add again ufo
+ac779f11d4e73f92f2b2651923f5471bad4e10f4 ba2682eb1589fa00376956586c3c4e0e13e1e3ae Eduardo Battisti <eduardobattisti10@gmail.com> 1739721001 -0300	commit: feat: add icon on folding
+ba2682eb1589fa00376956586c3c4e0e13e1e3ae fc52576a66ed5d55aa61a2d61657e6e1a93ff32c Eduardo Battisti <eduardobattisti10@gmail.com> 1739724611 -0300	commit: feat: add commando to dismiss notifications
+fc52576a66ed5d55aa61a2d61657e6e1a93ff32c d78ef93cb8adf9bffa1182d8644540e6e7a01290 Eduardo Battisti <eduardobattisti10@gmail.com> 1742175256 -0300	commit: feat: improve intelephense lsp config
+d78ef93cb8adf9bffa1182d8644540e6e7a01290 25e0c971f3ab0d9bc6cca8b8f8fa80a38d64ac54 Eduardo Battisti <eduardobattisti10@gmail.com> 1742175273 -0300	commit: feat: add php default formatter
+25e0c971f3ab0d9bc6cca8b8f8fa80a38d64ac54 6ced230a07068c781c1f29f38087c570d46cd148 Eduardo Battisti <eduardobattisti10@gmail.com> 1742175296 -0300	commit: fix: add correct settings structure to intelephsen lsp
+6ced230a07068c781c1f29f38087c570d46cd148 2abf76f696ff53a47de5c10eff25a1ccc253cca1 Eduardo Battisti <eduardobattisti10@gmail.com> 1742175382 -0300	commit: refactor: remove unnecessary comments
+2abf76f696ff53a47de5c10eff25a1ccc253cca1 95354b9fa8ae46ac869d1dfe58c87da1216fc992 Eduardo Battisti <eduardobattisti10@gmail.com> 1742177996 -0300	commit: refactor: improve lualine with recording status
+95354b9fa8ae46ac869d1dfe58c87da1216fc992 d8d520b6b8b3b42959c9e594b4187b0e39ed9532 Eduardo Battisti <eduardobattisti10@gmail.com> 1746119994 -0300	commit: refactor: uses catppuccin-frappe
+d8d520b6b8b3b42959c9e594b4187b0e39ed9532 09247e3c92b223fb086c09fbe31e3f8aa025e2bb Eduardo Battisti <eduardobattisti10@gmail.com> 1749434487 -0300	commit: feat: create readme file
+09247e3c92b223fb086c09fbe31e3f8aa025e2bb 0a12e3073d1cfc89983055dbeea222b1edd65bb9 Eduardo Battisti <eduardobattisti10@gmail.com> 1750019679 -0300	commit: feat: add fallback in utils
+0a12e3073d1cfc89983055dbeea222b1edd65bb9 aa088bdfd8d0211dd315697c6b9d48a332b5f770 Eduardo Battisti <eduardobattisti10@gmail.com> 1750019741 -0300	commit: refactor: remove unnecessary commnets
+aa088bdfd8d0211dd315697c6b9d48a332b5f770 36ad7d0a3bf604df8e51836c8a04e16437a86a70 Eduardo Battisti <eduardobattisti10@gmail.com> 1750019755 -0300	commit: refactor: simplify command according lazy pattern
+36ad7d0a3bf604df8e51836c8a04e16437a86a70 55b2f24315e18d0fd578d4de8aa852e134d8cf3e Eduardo Battisti <eduardobattisti10@gmail.com> 1750019772 -0300	commit: refactor: uses everforest theme
+55b2f24315e18d0fd578d4de8aa852e134d8cf3e f72cee4b0caef4106117bbd3987d9ed029845b2a Eduardo Battisti <eduardobattisti10@gmail.com> 1750019808 -0300	commit: refactor: remove telescop
+f72cee4b0caef4106117bbd3987d9ed029845b2a de26a4a552206b39de3cc59bc50edc158b609247 Eduardo Battisti <eduardobattisti10@gmail.com> 1750019819 -0300	commit: feat: add tailwindsorter
+de26a4a552206b39de3cc59bc50edc158b609247 8971379b2a2f96614c8fdcf5fd1a2e33934190c3 Eduardo Battisti <eduardobattisti10@gmail.com> 1750019839 -0300	commit: refactor: remap keymap according to lazy pattern
+8971379b2a2f96614c8fdcf5fd1a2e33934190c3 0c0506bb42e2c876e21566202363342594b0ced1 Eduardo Battisti <eduardobattisti10@gmail.com> 1750019875 -0300	commit: refactor: keymaps according to lazy pattern
+0c0506bb42e2c876e21566202363342594b0ced1 ea08a9b04378fd4a5f89315e81ca3a50d1927ae8 Eduardo Battisti <eduardobattisti10@gmail.com> 1750019897 -0300	commit: refactor: remove unused commnet
+ea08a9b04378fd4a5f89315e81ca3a50d1927ae8 9058d79d273a32ec52bc940dc91d5e2ba2d07b22 Eduardo Battisti <eduardobattisti10@gmail.com> 1750019946 -0300	commit: feat: separate between env types
+9058d79d273a32ec52bc940dc91d5e2ba2d07b22 293e6b920eff7b9c4c311ad5654222ef8eb3ffe5 Eduardo Battisti <eduardobattisti10@gmail.com> 1750019987 -0300	commit: feat: add emmet
+293e6b920eff7b9c4c311ad5654222ef8eb3ffe5 d6077420a3ee7c05ed23f2e433d1d094672adb66 Eduardo Battisti <eduardobattisti10@gmail.com> 1750020015 -0300	commit: feat: reorder lsp sources
+d6077420a3ee7c05ed23f2e433d1d094672adb66 551c6704c6036cb778310b13a7cb2ca55b80c5d8 Eduardo Battisti <eduardobattisti10@gmail.com> 1750891776 -0300	commit: feat: update vue_ls to latest version

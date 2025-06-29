@@ -26,6 +26,7 @@ return { -- Autocompletion
     'saadparwaiz1/cmp_luasnip',
     'hrsh7th/cmp-nvim-lsp',
     'hrsh7th/cmp-path',
+    'github/copilot.vim',
   },
   config = function()
     -- See `:help cmp`
@@ -92,7 +93,10 @@ return { -- Autocompletion
       },
       sources = {
         { name = 'nvim_lsp' },
+        { name = 'nvim_lsp_signature_help' },
         { name = 'luasnip' },
+        { name = 'copilot' },
+        { name = 'buffer' },
         { name = 'path' },
       },
     }
