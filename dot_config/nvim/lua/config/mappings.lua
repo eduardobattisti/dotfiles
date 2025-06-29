@@ -25,6 +25,9 @@ vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Keep cursor on middle of the screen 
 -- vim.keymap.set('n', '<Leader>c', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = 'Update all words under cursor on the file' })
 vim.keymap.set('n', '<Leader>rn', '<cmd>set rnu!<CR>', { desc = 'Toggle relativenumber' })
 
+-- Paste replace visual selection without copying it.
+vim.keymap.set('v', 'p', '"_dP')
+
 -- Folding
 vim.keymap.set('n', '<leader>zs', function()
   vim.api.nvim_exec2('%foldc!', { output = false })

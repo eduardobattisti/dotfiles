@@ -7,6 +7,9 @@ vim.g.maplocalleader = ' '
 vim.g.have_nerd_font = true
 vim.opt.termguicolors = true
 vim.opt.number = true
+vim.opt.expandtab = true -- Use spaces instead of tabs
+vim.opt.shiftwidth = 2 -- Size of an indent
+vim.opt.tabstop = 2 -- Number of spaces tabs count for
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -69,12 +72,11 @@ vim.opt.wrap = false
 vim.opt.relativenumber = true
 vim.opt.whichwrap:append '<>[]hl'
 
-vim.opt.foldcolumn = '0'
-vim.opt.foldmethod = 'expr'
-vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-vim.opt.foldnestmax = 3
-vim.opt.foldlevel = 99
-vim.opt.foldlevelstart = 99
+vim.o.foldcolumn = '1' -- '0' is not bad
+vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
+vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.o.foldlevelstart = 99
+vim.o.foldenable = true
 
 vim.fn.sign_define('DiagnosticSignError', { text = '', texthl = 'DiagnosticSignError' })
 vim.fn.sign_define('DiagnosticSignWarn', { text = '', texthl = 'DiagnosticSignWarn' })

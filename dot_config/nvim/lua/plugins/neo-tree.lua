@@ -48,6 +48,7 @@ return {
       },
     },
     window = {
+      position = 'right',
       width = 40,
       mappings = {
         ['<Tab>'] = 'next_source',
