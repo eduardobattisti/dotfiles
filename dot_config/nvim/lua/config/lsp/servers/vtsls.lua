@@ -20,21 +20,16 @@ local TS_JS_CONFIG = {
 }
 
 local mason_registry = require 'mason-registry'
-local has_volar, volar = pcall(mason_registry.get_package, 'vue-language-server')
-local vue_ts_plugin_path = volar:get_install_path() .. '/node_modules/@vue/language-server'
+local vue_language_server_path = vim.fn.expand '$MASON/packages' .. '/vue-language-server' .. '/node_modules/@vue/language-server'
 local vue_plugin = {}
 
-if has_volar then
-  vue_plugin = {
-    name = '@vue/typescript-plugin',
-    -- Maybe a function to get the location of the plugin is better?
-    -- e.g. pnpm fallback to nvm fallback to default node path
-    location = vue_ts_plugin_path,
-    languages = { 'vue' },
-    configNamespace = 'typescript',
-    enableForWorkspaceTypeScriptVersions = true,
-  }
-end
+vue_plugin = {
+  name = '@vue/typescript-plugin',
+  location = vue_language_server_path,
+  languages = { 'vue' },
+  configNamespace = 'typescript',
+  enableForWorkspaceTypeScriptVersions = true,
+}
 
 local handlers = {
   ['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, {

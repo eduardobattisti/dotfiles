@@ -1,4 +1,4 @@
-return { -- LSP Configuration & Plugins
+return {
   'neovim/nvim-lspconfig',
   dependencies = {
     -- Automatically install LSPs and related tools to stdpath for Neovim
@@ -13,8 +13,7 @@ return { -- LSP Configuration & Plugins
   },
 
   config = function()
-    local lspconfig = require 'lspconfig'
-
+    -- Setup autocmd for LSP attach events (keymappings, highlighting, etc.)
     vim.api.nvim_create_autocmd('LspAttach', {
       group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
       callback = function(event)
@@ -74,12 +73,7 @@ return { -- LSP Configuration & Plugins
       end,
     })
 
-    -- Ensure the servers and tools above are installed
-    --  To check the current status of installed tools and/or manually install
-    --  other tools, you can run
-    --    :Mason
-    --
-    --  You can press `g?` for help in this menu.
+    -- Ensure the servers and tools are installed
     require('mason').setup()
 
     -- You can add other tools here that you want Mason to install
@@ -88,16 +82,17 @@ return { -- LSP Configuration & Plugins
       -- 'phpcs',
       'markdownlint',
       'php-debug-adapter',
-    } -- vim.tbl_keys(servers or {})
-    vim.list_extend(ensure_installed, {
       'stylua',
       'cssls',
       'css_variables',
       'html',
       'intelephense',
-      'volar',
+      'vue_ls',
       'vtsls',
-    })
+    }
+
+    -- Install tools with mason-tool-installer
+    require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
     -- LSP servers and clients are able to communicate to each other what features they support.
     --  By default, Neovim doesn't support everything that is in the LSP specification.
@@ -106,6 +101,7 @@ return { -- LSP Configuration & Plugins
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
+    -- Define global handlers for all servers
     local handlers = {
       ['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, {
         silent = true,
@@ -114,112 +110,90 @@ return { -- LSP Configuration & Plugins
       ['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = 'rounded' }),
     }
 
-    local function on_attach(client, bufnr)
-      -- vim.lsp.inlay_hint.enable(true, { bufnr })
-    end
-
-    require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-
+    -- Setup mason-lspconfig with automatic server enablement
+    -- This will automatically call vim.lsp.enable() for installed servers
     require('mason-lspconfig').setup {
-      handlers = {
-        function(server_name)
-          local server = {}
-          -- This handles overriding only values explicitly passed
-          -- by the server configuration above. Useful when disabling
-          -- certain features of an LSP (for example, turning off formatting for tsserver)
-
-          server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-          server.handlers = handlers
-          server.on_attach = on_attach
-
-          lspconfig[server_name].setup(server)
-        end,
-
-        ['vtsls'] = function()
-          local vtsls_config = require 'config.lsp.servers.vtsls'
-
-          lspconfig.vtsls.setup {
-            capabilities = capabilities,
-            handlers = vtsls_config.handlers,
-            on_attach = vtsls_config.on_attach,
-            settings = vtsls_config.settings,
-            filetypes = vtsls_config.filetypes,
-          }
-        end,
-
-        ['ts_ls'] = function() end,
-
-        ['html'] = function()
-          lspconfig.html.setup {
-            on_attach = function(client, bufnr)
-              local filetype = vim.api.nvim_get_option_value('filetype', { buf = bufnr })
-
-              if filetype == 'vue' then
-                client.stop()
-              end
-            end,
-          }
-        end,
-
-        ['volar'] = function()
-          lspconfig.volar.setup {
-            capabilities = capabilities,
-          }
-        end,
-
-        ['tailwindcss'] = function()
-          local tailwind_config = require 'config.lsp.servers.tailwindcss'
-
-          lspconfig.tailwindcss.setup {
-            capabilities = tailwind_config.capabilities,
-            filetypes = tailwind_config.filetypes,
-            on_attach = tailwind_config.on_attach,
-            settings = tailwind_config.settings,
-          }
-        end,
-
-        ['intelephense'] = function()
-          local intelephense_config = require 'config.lsp.servers.intelephense'
-
-          lspconfig.intelephense.setup {
-            capabilities = capabilities,
-            filetypes = intelephense_config.filetypes,
-            settings = {
-              intelephense = intelephense_config.settings,
-            },
-            on_attach = on_attach,
-          }
-        end,
-
-        ['vue_ls'] = function()
-          lspconfig.vue_ls.setup {
-            on_init = function(client)
-              client.handlers['tsserver/request'] = function(_, result, context)
-                local clients = vim.lsp.get_clients { bufnr = context.bufnr, name = 'vtsls' }
-                if #clients == 0 then
-                  vim.notify('Could not found `vtsls` lsp client, vue_lsp would not work without it.', vim.log.levels.ERROR)
-                  return
-                end
-                local ts_client = clients[1]
-
-                local param = unpack(result)
-                local id, command, payload = unpack(param)
-                ts_client:exec_cmd({
-                  command = 'typescript.tsserverRequest',
-                  arguments = {
-                    command,
-                    payload,
-                  },
-                }, { bufnr = context.bufnr }, function(_, r)
-                  local response_data = { { id, r.body } }
-                  ---@diagnostic disable-next-line: param-type-mismatch
-                  client:notify('tsserver/response', response_data)
-                end)
-              end
-            end,
-          }
-        end,
+      -- Automatically install these servers
+      ensure_installed = {
+        'cssls',
+        'css_variables',
+        'html',
+        'intelephense',
+        'vue_ls',
+        'vtsls',
       },
+      -- Automatically enable installed servers
+      automatic_enable = true,
     }
+
+    -- Configure specific server options using vim.lsp.config (Neovim 0.11+)
+    -- This allows us to configure servers without disabling automatic_enable
+
+    -- Configure HTML server to stop for Vue files
+    vim.lsp.config('html', {
+      on_attach = function(client, bufnr)
+        local filetype = vim.api.nvim_get_option_value('filetype', { buf = bufnr })
+        if filetype == 'vue' then
+          client.stop()
+        end
+      end,
+    })
+
+    -- Configure tailwindcss server with custom settings
+    vim.lsp.config('tailwindcss', {
+      capabilities = require('config.lsp.servers.tailwindcss').capabilities,
+      filetypes = require('config.lsp.servers.tailwindcss').filetypes,
+      on_attach = require('config.lsp.servers.tailwindcss').on_attach,
+      settings = require('config.lsp.servers.tailwindcss').settings,
+    })
+
+    -- Configure intelephense (PHP) server with custom settings
+    vim.lsp.config('intelephense', {
+      capabilities = capabilities,
+      filetypes = require('config.lsp.servers.intelephense').filetypes,
+      settings = {
+        intelephense = require('config.lsp.servers.intelephense').settings,
+      },
+    })
+
+    -- Configure vtsls (TypeScript) server with custom settings
+    vim.lsp.config('vtsls', {
+      capabilities = capabilities,
+      handlers = require('config.lsp.servers.vtsls').handlers,
+      on_attach = require('config.lsp.servers.vtsls').on_attach,
+      settings = require('config.lsp.servers.vtsls').settings,
+      filetypes = require('config.lsp.servers.vtsls').filetypes,
+    })
+
+    -- Configure vue_ls (Vue Language Server) with custom on_init handling
+    vim.lsp.config('vue_ls', {
+      on_init = function(client)
+        client.handlers['tsserver/request'] = function(_, result, context)
+          local clients = vim.lsp.get_clients { bufnr = context.bufnr, name = 'vtsls' }
+          if #clients == 0 then
+            -- vim.notify('Could not found `vtsls` lsp client, vue_lsp would not work without it.', vim.log.levels.ERROR)
+            return
+          end
+          local ts_client = clients[1]
+
+          local param = unpack(result)
+          local id, command, payload = unpack(param)
+          ts_client:exec_cmd({
+            command = 'typescript.tsserverRequest',
+            arguments = {
+              command,
+              payload,
+            },
+          }, { bufnr = context.bufnr }, function(_, r)
+            local response_data = { { id, r.body } }
+            ---@diagnostic disable-next-line: param-type-mismatch
+            -- client:notify('tsserver/response', response_data)
+          end)
+        end
+      end,
+    })
+
+    -- Skip ts_ls as it's explicitly not needed
+    vim.lsp.config('ts_ls', { enabled = false })
   end,
 }
