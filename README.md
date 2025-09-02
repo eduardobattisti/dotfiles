@@ -124,62 +124,7 @@ chezmoi update
 chezmoi status
 ```
 
-## 🔒 Security
 
-⚠️ **IMPORTANT SECURITY WARNINGS** ⚠️
-
-### Current Security Issues in This Configuration:
-
-1. **Git Repository Exposure (HIGH RISK)**
-   - The `dot_config/nvim/dot_git` directory contains complete git history
-   - Personal email addresses and commit information are exposed
-   - SSH key fingerprints may be leaked
-
-2. **Personal Information Leakage (MEDIUM RISK)**
-   - Hardcoded username paths in shell configurations
-   - System-specific installation paths are exposed
-
-3. **Eval Command Usage (LOW-MEDIUM RISK)**
-   - Shell configurations use `eval` commands for tool initialization
-   - Potential security risk if tools are compromised
-
-### Immediate Actions Required:
-
-```bash
-# 1. Remove git directories from chezmoi
-rm -rf ~/.local/share/chezmoi/dot_config/nvim/dot_git
-
-# 2. Create .chezmoiignore file
-cat << EOF > ~/.local/share/chezmoi/.chezmoiignore
-**/.git
-**/.git/**
-**/logs/
-**/.env
-**/.env.*
-**/node_modules/
-**/.DS_Store
-EOF
-
-# 3. Use chezmoi templates for personal info
-# Replace hardcoded usernames with {{ .chezmoi.username }}
-```
-
-### Security Best Practices:
-
-- **Never share this directory publicly** without reviewing all files
-- Use **private repositories** for personal dotfiles
-- Use `private_` prefix for sensitive configurations
-- Use `encrypted_` prefix for files containing secrets
-- Store sensitive data in chezmoi templates or external secret managers
-- Regularly audit your dotfiles for exposed sensitive information
-
-### Secure Chezmoi Features:
-
-- **Templates**: Use `{{ .chezmoi.username }}` instead of hardcoded usernames
-- **Private files**: Use `private_` prefix (like `private_htop/`)
-- **Encrypted files**: Use `encrypted_` prefix for secrets
-- **Data files**: Store user-specific data in `.chezmoi.yaml` or `.chezmoi.toml`
-- **External sources**: Reference external secret managers
 
 ## 🤝 Contributing
 
