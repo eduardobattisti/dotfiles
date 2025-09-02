@@ -5,6 +5,9 @@
 **/dot_git/**
 **/.gitignore
 
+# Chezmoi configuration (keep templates, ignore generated)
+.chezmoi.toml
+
 # Environment and secrets
 **/.env
 **/.env.*

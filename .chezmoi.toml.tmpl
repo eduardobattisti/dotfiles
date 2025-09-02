@@ -1,0 +1,28 @@
+{{- $email := promptStringOnce . "email" "What is your email address" -}}
+{{- $nvimPath := promptStringOnce . "nvimPath" "What is your Neovim path" "/opt/nvim-linux64/bin" -}}
+{{- $useOhMyZsh := promptBoolOnce . "useOhMyZsh" "Do you use Oh My Zsh" true -}}
+
+[data]
+    email = {{ $email | quote }}
+    useOhMyZsh = {{ $useOhMyZsh }}
+    
+[data.paths]
+    bun = "{{ .chezmoi.homeDir }}/.bun"
+    fly = "{{ .chezmoi.homeDir }}/.fly"
+    nvm = "{{ .chezmoi.homeDir }}/.nvm"
+    local_bin = "{{ .chezmoi.homeDir }}/.local/bin"
+    oh_my_zsh = "{{ .chezmoi.homeDir }}/.oh-my-zsh"
+
+[data.development]
+    nvim_path = {{ $nvimPath | quote }}
+    
+[edit]
+    command = "nvim"
+    
+[diff]
+    command = "nvim"
+    args = ["-d"]
+
+[merge]
+    command = "nvim"
+    args = ["-d"]

@@ -1,0 +1,20 @@
+[data]
+    username = "{{ .chezmoi.username }}"
+    email = "eduardobattisti10@gmail.com"
+    homeDir = "{{ .chezmoi.homeDir }}"
+    
+[data.paths]
+    bun = "{{ .chezmoi.homeDir }}/.bun"
+    fly = "{{ .chezmoi.homeDir }}/.fly"
+    nvm = "{{ .chezmoi.homeDir }}/.nvm"
+    local_bin = "{{ .chezmoi.homeDir }}/.local/bin"
+
+[data.development]
+    nvim_path = "/opt/nvim-linux64/bin"
+    
+[edit]
+    command = "nvim"
+    
+[diff]
+    command = "nvim"
+    args = ["-d"]
