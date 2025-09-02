@@ -144,8 +144,8 @@ config.wsl_domains = {
 	{
 		name = "WSL:Ubuntu-20.04",
 		distribution = "Ubuntu-20.04",
-		username = "eduardobattisti",
-		default_cwd = "/home/eduardobattisti",
+		username = "{{ .chezmoi.username }}",
+		default_cwd = "{{ .chezmoi.homeDir }}",
 		default_prog = { "zsh", "-l" },
 	},
 }

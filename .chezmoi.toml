@@ -1,6 +1,6 @@
 [data]
     username = "{{ .chezmoi.username }}"
-    email = "eduardobattisti10@gmail.com"
+    email = "{{ .email }}"
     homeDir = "{{ .chezmoi.homeDir }}"
     
 [data.paths]
