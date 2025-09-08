@@ -16,7 +16,7 @@ local function get_process(tab)
 		},
 		["nvim"] = {
 			{ Foreground = { Color = colors.green } },
-			{ Text = "" },
+			{ Text = "" },
 		},
 		["bob"] = {
 			{ Foreground = { Color = colors.blue } },
@@ -24,7 +24,7 @@ local function get_process(tab)
 		},
 		["vim"] = {
 			{ Foreground = { Color = colors.green } },
-			{ Text = "" },
+			{ Text = "" },
 		},
 		["node"] = {
 			{ Foreground = { Color = colors.green } },
@@ -32,19 +32,19 @@ local function get_process(tab)
 		},
 		["zsh"] = {
 			{ Foreground = { Color = colors.orange } },
-			{ Text = "" },
+			{ Text = "" },
 		},
 		["bash"] = {
 			{ Foreground = { Color = colors.gray } },
-			{ Text = "" },
+			{ Text = "" },
 		},
 		["htop"] = {
 			{ Foreground = { Color = colors.yellow } },
-			{ Text = "" },
+			{ Text = "" },
 		},
 		["btop"] = {
 			{ Foreground = { Color = colors.red } },
-			{ Text = "" },
+			{ Text = "" },
 		},
 		["cargo"] = {
 			{ Foreground = { Color = colors.orange } },
@@ -100,8 +100,8 @@ local function get_process(tab)
 		},
 	}
 
-	-- local process_name = string.gsub(tab.active_pane.foreground_process_name, "(.*[/\\])(.*)", "%2")
-	local process_name = tab.active_pane.title
+	local process_name = string.gsub(tab.active_pane.foreground_process_name, "(.*[/\\])(.*)", "%2")
+	-- local process_name = tab.active_pane.title
 
 	if PROCESS_ICONS[process_name] then
 		return PROCESS_ICONS[process_name]
