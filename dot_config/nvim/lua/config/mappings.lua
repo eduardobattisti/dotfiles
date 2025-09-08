@@ -16,8 +16,8 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 
 vim.keymap.set('n', '<C-s>', '<cmd>:w<cr>', { desc = 'Save the current buffer' })
 
-vim.keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Paste without lose the copied value' })
-vim.keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Paste without lose the copied value' })
+vim.keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Scroll down half page and center' })
+vim.keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Scroll up half page and center' })
 
 vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Keep cursor on middle of the screen when highlight' })
 vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Keep cursor on middle of the screen when highlight' })
