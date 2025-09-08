@@ -1,25 +1,27 @@
-return { -- Useful plugin to show you pending keybinds. 'folke/which-key.nvim',
+return {
   'folke/which-key.nvim',
-  event = 'VimEnter', -- Sets the loading event to 'VimEnter'
-  opts = {
-    win = {
-      title = false,
-      border = 'rounded',
-    },
-  },
-  config = function(_, opts) -- This is the function that runs, AFTER loading
-    require('which-key').setup(opts)
+  event = 'VimEnter',
+  config = function()
+    require('which-key').setup()
 
-    -- Document existing key chains
-    require('which-key').add {
-      { '<leader>l', group = '[L]sp', icon = '󰈔' },
-      { '<leader>d', group = '[D]ebug', icon = '' },
-      { '<leader>s', group = '[S]urround', icon = '󱃗' },
-      { '<leader>S', group = '[S]ession', icon = '' },
-      { '<leader>f', group = '[F]ind', icon = '󰭎' },
-      { '<leader>t', group = '[T]erminal', icon = '' },
-      { '<leader>g', group = '[G]it', icon = '' },
-      { '<leader>c', group = '[C]onfig', icon = '' },
-    }
+    -- Document existing key chains using new spec format
+    require('which-key').add({
+      { "<leader>c", group = "[C]ode" },
+      { "<leader>c_", hidden = true },
+      { "<leader>d", group = "[D]ocument" },
+      { "<leader>d_", hidden = true },
+      { "<leader>r", group = "[R]ename" },
+      { "<leader>r_", hidden = true },
+      { "<leader>s", group = "[S]earch" },
+      { "<leader>s_", hidden = true },
+      { "<leader>w", group = "[W]orkspace" },
+      { "<leader>w_", hidden = true },
+      { "<leader>t", group = "[T]oggle" },
+      { "<leader>t_", hidden = true },
+      { "<leader>h", group = "Git [H]unk" },
+      { "<leader>h_", hidden = true },
+      -- Visual mode mappings
+      { "<leader>h", desc = "Git [H]unk", mode = "v" },
+    })
   end,
 }
