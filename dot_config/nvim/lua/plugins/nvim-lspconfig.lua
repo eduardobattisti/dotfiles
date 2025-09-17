@@ -5,11 +5,11 @@ return {
     { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
     'williamboman/mason-lspconfig.nvim',
     'WhoIsSethDaniel/mason-tool-installer.nvim',
-    { 'j-hui/fidget.nvim', opts = {} },
+    { 'j-hui/fidget.nvim',       opts = {} },
 
     -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
     -- used for completion, annotations and signatures of Neovim apis
-    { 'folke/neodev.nvim', opts = {} },
+    { 'folke/neodev.nvim',       opts = {} },
   },
 
   config = function()
@@ -23,11 +23,48 @@ return {
         lsp_utils.keymap('gr', require('telescope.builtin').lsp_references, event.buf, '[G]oto [R]eferences')
         lsp_utils.keymap('gI', require('telescope.builtin').lsp_implementations, event.buf, '[G]oto [I]mplementation')
         lsp_utils.keymap('<leader>lD', require('telescope.builtin').lsp_type_definitions, event.buf, 'Type [D]efinition')
-        lsp_utils.keymap('<leader>lds', require('telescope.builtin').lsp_document_symbols, event.buf, '[D]ocument [S]ymbols')
-        lsp_utils.keymap('<leader>lws', require('telescope.builtin').lsp_dynamic_workspace_symbols, event.buf, '[W]orkspace [S]ymbols')
+        lsp_utils.keymap('<leader>lds', require('telescope.builtin').lsp_document_symbols, event.buf,
+          '[D]ocument [S]ymbols')
+        lsp_utils.keymap('<leader>lws', require('telescope.builtin').lsp_dynamic_workspace_symbols, event.buf,
+          '[W]orkspace [S]ymbols')
         lsp_utils.keymap('<leader>lr', vim.lsp.buf.rename, event.buf, '[R]ename')
         lsp_utils.keymap('<leader>la', vim.lsp.buf.code_action, event.buf, '[C]ode [A]ction')
         lsp_utils.keymap('gD', vim.lsp.buf.declaration, event.buf, '[G]oto [D]eclaration')
+        lsp_utils.keymap('K', vim.lsp.buf.hover, event.buf, 'Hover Documentation')
+        lsp_utils.keymap('<C-k>', vim.lsp.buf.signature_help, event.buf, 'Signature Help')
+
+        -- LSP status check for debugging
+        lsp_utils.keymap('<leader>li', '<cmd>LspInfo<cr>', event.buf, 'LSP [I]nfo')
+        lsp_utils.keymap('<leader>ls', function()
+          local clients = vim.lsp.get_clients { bufnr = event.buf }
+          if #clients == 0 then
+            print 'No LSP clients attached to this buffer'
+          else
+            for _, client in ipairs(clients) do
+              print('LSP client: ' .. client.name .. ' (id: ' .. client.id .. ')')
+            end
+          end
+        end, event.buf, 'LSP [S]tatus')
+
+        -- Vue LSP diagnostic command
+        lsp_utils.keymap('<leader>lv', function()
+          local clients = vim.lsp.get_clients { bufnr = event.buf }
+          local vue_clients = {}
+          for _, client in ipairs(clients) do
+            if client.name == 'vue_ls' or client.name == 'vtsls' then
+              table.insert(vue_clients, client.name)
+            end
+          end
+          if #vue_clients == 0 then
+            print 'No Vue LSP clients attached'
+          else
+            print('Vue LSP clients: ' .. table.concat(vue_clients, ', '))
+            -- Test hover capability
+            if vim.bo.filetype == 'vue' then
+              vim.lsp.buf.hover()
+            end
+          end
+        end, event.buf, 'Vue LSP [D]iagnostic')
 
         -- The following two autocommands are used to highlight references of the
         -- word under your cursor when your cursor rests there for a little while.
@@ -35,7 +72,7 @@ return {
         --
         -- When you move your cursor, the highlights will be cleared (the second autocommand).
         local client = vim.lsp.get_client_by_id(event.data.client_id)
-        if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+        if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
           local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
 
           vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
@@ -65,7 +102,7 @@ return {
         -- code, if the language server you are using supports them
         --
         -- This may be unwanted, since they displace some of your code
-        if client and client.server_capabilities.inlayHintProvider and vim.lsp.inlay_hint then
+        if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) and vim.lsp.inlay_hint then
           lsp_utils.keymap('<leader>lth', function()
             vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
           end, event.buf, '[T]oggle Inlay [H]ints')
@@ -100,6 +137,12 @@ return {
     --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+
+    -- Ensure hover capability is enabled
+    capabilities.textDocument.hover = {
+      dynamicRegistration = false,
+      contentFormat = { 'markdown', 'plaintext' },
+    }
 
     -- Define global handlers for all servers
     local handlers = {
@@ -156,22 +199,29 @@ return {
       },
     })
 
-    -- Configure vtsls (TypeScript) server with custom settings
     vim.lsp.config('vtsls', {
       capabilities = capabilities,
       handlers = require('config.lsp.servers.vtsls').handlers,
       on_attach = require('config.lsp.servers.vtsls').on_attach,
-      settings = require('config.lsp.servers.vtsls').settings,
       filetypes = require('config.lsp.servers.vtsls').filetypes,
+      settings = require('config.lsp.servers.vtsls').settings,
     })
 
-    -- Configure vue_ls (Vue Language Server) with custom on_init handling
+    -- Configure vue_ls (Vue Language Server) for template and style support
     vim.lsp.config('vue_ls', {
+      capabilities = capabilities,
       on_init = function(client)
         client.handlers['tsserver/request'] = function(_, result, context)
-          local clients = vim.lsp.get_clients { bufnr = context.bufnr, name = 'vtsls' }
+          local ts_clients = vim.lsp.get_clients { bufnr = context.bufnr, name = 'ts_ls' }
+          local vtsls_clients = vim.lsp.get_clients { bufnr = context.bufnr, name = 'vtsls' }
+          local clients = {}
+
+          vim.list_extend(clients, ts_clients)
+          vim.list_extend(clients, vtsls_clients)
+
           if #clients == 0 then
-            -- vim.notify('Could not found `vtsls` lsp client, vue_lsp would not work without it.', vim.log.levels.ERROR)
+            vim.notify('Could not find `vtsls` or `ts_ls` lsp client, `vue_ls` would not work without it.',
+              vim.log.levels.ERROR)
             return
           end
           local ts_client = clients[1]
@@ -179,21 +229,26 @@ return {
           local param = unpack(result)
           local id, command, payload = unpack(param)
           ts_client:exec_cmd({
+            title = 'vue_request_forward', -- You can give title anything as it's used to represent a command in the UI, `:h Client:exec_cmd`
             command = 'typescript.tsserverRequest',
             arguments = {
               command,
               payload,
             },
           }, { bufnr = context.bufnr }, function(_, r)
-            local response_data = { { id, r.body } }
+            local response = r and r.body
+            -- TODO: handle error or response nil here, e.g. logging
+            -- NOTE: Do NOT return if there's an error or no response, just return nil back to the vue_ls to prevent memory leak
+            local response_data = { { id, response } }
+
             ---@diagnostic disable-next-line: param-type-mismatch
-            -- client:notify('tsserver/response', response_data)
+            client:notify('tsserver/response', response_data)
           end)
         end
       end,
     })
 
-    -- Skip ts_ls as it's explicitly not needed
+    -- Skip ts_ls as it's explicitly not needed when using vtsls
     vim.lsp.config('ts_ls', { enabled = false })
   end,
 }

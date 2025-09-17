@@ -37,6 +37,7 @@ return {
     enable_git_status = true,
     enable_diagnostics = true,
     sources = { 'filesystem', 'buffers', 'git_status' },
+    popup_border_style = 'rounded',
     source_selector = {
       winbar = true,
       content_layout = 'center',
@@ -53,6 +54,16 @@ return {
       mappings = {
         ['<Tab>'] = 'next_source',
         ['<S-Tab>'] = 'prev_source',
+      },
+    },
+    default_component_configs = {
+      container = {
+        enable_character_fade = true,
+      },
+      name = {
+        trailing_slash = false,
+        use_git_status_colors = true,
+        highlight = "NeoTreeFileName",
       },
     },
     filesystem = {

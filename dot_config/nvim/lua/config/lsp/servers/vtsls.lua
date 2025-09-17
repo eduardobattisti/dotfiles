@@ -19,11 +19,9 @@ local TS_JS_CONFIG = {
   },
 }
 
-local mason_registry = require 'mason-registry'
-local vue_language_server_path = vim.fn.expand '$MASON/packages' .. '/vue-language-server' .. '/node_modules/@vue/language-server'
-local vue_plugin = {}
-
-vue_plugin = {
+local vue_language_server_path = vim.fn.expand '$MASON/packages' ..
+'/vue-language-server' .. '/node_modules/@vue/language-server'
+local vue_plugin = {
   name = '@vue/typescript-plugin',
   location = vue_language_server_path,
   languages = { 'vue' },
@@ -67,7 +65,7 @@ local settings = {
   init_options = {
     plugins = {
       vue_plugin,
-    }
+    },
   },
   typescript = TS_JS_CONFIG,
   javascript = TS_JS_CONFIG,
@@ -147,7 +145,7 @@ local filetypes = {
   'vue',
 }
 
-M.handler = handlers
+M.handlers = handlers
 M.settings = settings
 M.filetypes = filetypes
 M.on_attach = on_attach

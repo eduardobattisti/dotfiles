@@ -49,8 +49,24 @@ vim.opt.splitbelow = true
 -- Sets how neovim will display certain whitespace characters in the editor.
 --  See `:help 'list'`
 --  and `:help 'listchars'`
+-- Enhanced listchars for better indentation visualization (replaces indent-blankline)
 vim.opt.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.opt.listchars = { 
+  tab = '» ', 
+  trail = '·', 
+  nbsp = '␣',
+  extends = '❯',
+  precedes = '❮',
+  eol = '↲',
+}
+vim.opt.fillchars = {
+  fold = '·',
+  foldsep = '│',
+  foldopen = '▼',
+  foldclose = '▶',
+  diff = '╱',
+  eob = ' ',
+}
 
 -- Preview substitutions live, as you type!
 vim.opt.inccommand = 'split'
@@ -62,6 +78,40 @@ vim.opt.cursorlineopt = 'number'
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 
+-- Enhanced built-in features configuration
+
+-- Better netrw configuration (replaces file tree plugins for simple use)
+vim.g.netrw_banner = 0 -- Disable banner
+vim.g.netrw_liststyle = 3 -- Tree view
+vim.g.netrw_browse_split = 0 -- Open files in same window
+vim.g.netrw_altv = 1 -- Open splits to the right
+vim.g.netrw_winsize = 25 -- Set width to 25%
+vim.g.netrw_keepdir = 0 -- Keep current directory and browsing directory synced
+
+-- Enhanced command-line completion
+vim.opt.wildmenu = true
+vim.opt.wildmode = 'longest:full,full'
+vim.opt.wildoptions = 'pum'
+
+-- Better built-in completion
+vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
+vim.opt.pumheight = 10 -- Limit popup menu height
+
+-- Enhanced search configuration
+vim.opt.gdefault = true -- Use global flag by default in substitute
+vim.opt.magic = true -- Use magic patterns
+
+-- Better backup and swap handling
+vim.opt.backup = false -- Don't create backup files
+vim.opt.writebackup = false -- Don't create backup before overwriting
+vim.opt.swapfile = false -- Disable swap files (rely on undofile)
+
+-- Enhanced diff options
+vim.opt.diffopt:append('linematch:60') -- Better diff algorithm
+
+-- Better built-in terminal colors
+vim.opt.termguicolors = true
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -72,48 +122,13 @@ vim.opt.wrap = false
 vim.opt.relativenumber = true
 vim.opt.whichwrap:append '<>[]hl'
 
+-- Enhanced folding with UFO plugin
 vim.o.foldcolumn = '1' -- '0' is not bad
-vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
 vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
 
-vim.fn.sign_define('DiagnosticSignError', { text = '', texthl = 'DiagnosticSignError' })
-vim.fn.sign_define('DiagnosticSignWarn', { text = '', texthl = 'DiagnosticSignWarn' })
-vim.fn.sign_define('DiagnosticSignInfo', { text = '', texthl = 'DiagnosticSignInfo' })
-vim.fn.sign_define('DiagnosticSignHint', { text = '', texthl = 'DiagnosticSignHint' })
+-- Load comprehensive border configuration
+require('config.ui.borders').setup()
 
-vim.fn.sign_define('DapBreakpoint', {
-  text = '', -- nerdfonts icon here
-  texthl = 'DapBreakpointSymbol',
-  linehl = 'DapBreakpoint',
-  numhl = 'DapBreakpoint',
-})
 
-vim.fn.sign_define('DapStopped', {
-  text = '󰁕', -- nerdfonts icon here
-  texthl = 'DapStoppedSymbol',
-  linehl = 'DapBreakpoint',
-  numhl = 'DapBreakpoint',
-})
-
-vim.fn.sign_define('DapBreakpointCondition', {
-  text = '', -- nerdfonts icon here
-  texthl = 'DapBreakpointSymbol',
-  linehl = 'DapBreakpoint',
-  numhl = 'DapBreakpoint',
-})
-
-vim.fn.sign_define('DapBreakpointRejected', {
-  text = '', -- nerdfonts icon here
-  texthl = 'DapStoppedSymbol',
-  linehl = 'DapBreakpoint',
-  numhl = 'DapBreakpoint',
-})
-
-vim.fn.sign_define('DapLogPoint', {
-  text = '', -- nerdfonts icon here
-  texthl = 'DapStoppedSymbol',
-  linehl = 'DapBreakpoint',
-  numhl = 'DapBreakpoint',
-})

@@ -28,6 +28,42 @@ return {
     local dap = require 'dap'
     local dapui = require 'dapui'
 
+    -- Configure DAP signs
+    vim.fn.sign_define('DapBreakpoint', {
+      text = '',
+      texthl = 'DapBreakpointSymbol',
+      linehl = 'DapBreakpoint',
+      numhl = 'DapBreakpoint',
+    })
+
+    vim.fn.sign_define('DapStopped', {
+      text = '󰁕',
+      texthl = 'DapStoppedSymbol',
+      linehl = 'DapBreakpoint',
+      numhl = 'DapBreakpoint',
+    })
+
+    vim.fn.sign_define('DapBreakpointCondition', {
+      text = '',
+      texthl = 'DapBreakpointSymbol',
+      linehl = 'DapBreakpoint',
+      numhl = 'DapBreakpoint',
+    })
+
+    vim.fn.sign_define('DapBreakpointRejected', {
+      text = '',
+      texthl = 'DapStoppedSymbol',
+      linehl = 'DapBreakpoint',
+      numhl = 'DapBreakpoint',
+    })
+
+    vim.fn.sign_define('DapLogPoint', {
+      text = '',
+      texthl = 'DapStoppedSymbol',
+      linehl = 'DapBreakpoint',
+      numhl = 'DapBreakpoint',
+    })
+
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
       -- reasonable debug configurations
