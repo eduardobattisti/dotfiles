@@ -6,7 +6,8 @@
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear search highlights' })
 
 -- Enhanced search and replace
-vim.keymap.set('n', '<leader>s', ':%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left><Left>', { desc = '[S]ubstitute word under cursor' })
+vim.keymap.set('n', '<leader>s', ':%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left><Left>',
+  { desc = '[S]ubstitute word under cursor' })
 vim.keymap.set('v', '<leader>s', ':s/\\%V', { desc = '[S]ubstitute in visual selection' })
 vim.keymap.set('n', '<leader>S', ':%s/', { desc = '[S]ubstitute globally' })
 
@@ -42,14 +43,18 @@ vim.keymap.set('n', '<C-Down>', '<C-w>-', { desc = 'Decrease window height' })
 vim.keymap.set('n', '<leader>wv', '<C-w>v', { desc = 'Split [W]indow [V]ertically' })
 vim.keymap.set('n', '<leader>wh', '<C-w>s', { desc = 'Split [W]indow [H]orizontally' })
 vim.keymap.set('n', '<leader>we', '<C-w>=', { desc = '[W]indow [E]qual size' })
-vim.keymap.set('n', '<leader>wc', function() require('utils.builtin').smart_close_window() end, { desc = '[W]indow [C]lose (smart)' })
-vim.keymap.set('n', '<leader>wm', function() require('utils.builtin').toggle_maximize_window() end, { desc = '[W]indow [M]aximize toggle' })
+vim.keymap.set('n', '<leader>wc', function() require('utils.builtin').smart_close_window() end,
+  { desc = '[W]indow [C]lose (smart)' })
+vim.keymap.set('n', '<leader>wm', function() require('utils.builtin').toggle_maximize_window() end,
+  { desc = '[W]indow [M]aximize toggle' })
 
 -- Buffer navigation
 vim.keymap.set('n', '<leader>bn', '<cmd>bnext<cr>', { desc = '[B]uffer [N]ext' })
 vim.keymap.set('n', '<leader>bp', '<cmd>bprevious<cr>', { desc = '[B]uffer [P]revious' })
-vim.keymap.set('n', '<leader>bd', function() require('utils.builtin').smart_delete_buffer() end, { desc = '[B]uffer [D]elete (smart)' })
-vim.keymap.set('n', '<leader>ba', function() require('utils.builtin').delete_other_buffers() end, { desc = '[B]uffer delete [A]ll except current' })
+vim.keymap.set('n', '<leader>bd', function() require('utils.builtin').smart_delete_buffer() end,
+  { desc = '[B]uffer [D]elete (smart)' })
+vim.keymap.set('n', '<leader>ba', function() require('utils.builtin').delete_other_buffers() end,
+  { desc = '[B]uffer delete [A]ll except current' })
 
 -- ============================================================================
 -- FILE MANAGEMENT (Enhanced netrw)
@@ -66,14 +71,16 @@ vim.keymap.set('n', '<leader>E', '<cmd>Sexplore<cr>', { desc = '[E]xplore files 
 -- Quickfix navigation
 vim.keymap.set('n', '[q', '<cmd>cprevious<cr>', { desc = 'Previous quickfix item' })
 vim.keymap.set('n', ']q', '<cmd>cnext<cr>', { desc = 'Next quickfix item' })
-vim.keymap.set('n', '<leader>qt', function() require('utils.builtin').toggle_quickfix() end, { desc = '[Q]uickfix [T]oggle' })
+vim.keymap.set('n', '<leader>qt', function() require('utils.builtin').toggle_quickfix() end,
+  { desc = '[Q]uickfix [T]oggle' })
 vim.keymap.set('n', '<leader>qf', '<cmd>cfirst<cr>', { desc = '[Q]uickfix [F]irst' })
 vim.keymap.set('n', '<leader>ql', '<cmd>clast<cr>', { desc = '[Q]uickfix [L]ast' })
 
 -- Location list navigation
 vim.keymap.set('n', '[l', '<cmd>lprevious<cr>', { desc = 'Previous location list item' })
 vim.keymap.set('n', ']l', '<cmd>lnext<cr>', { desc = 'Next location list item' })
-vim.keymap.set('n', '<leader>lt', function() require('utils.builtin').toggle_loclist() end, { desc = '[L]ocation list [T]oggle' })
+vim.keymap.set('n', '<leader>lt', function() require('utils.builtin').toggle_loclist() end,
+  { desc = '[L]ocation list [T]oggle' })
 
 -- ============================================================================
 -- DIAGNOSTICS
@@ -81,9 +88,11 @@ vim.keymap.set('n', '<leader>lt', function() require('utils.builtin').toggle_loc
 
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Previous diagnostic' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Next diagnostic' })
-vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Show [D]iagnostic' })
-vim.keymap.set('n', '<leader>dq', function() require('utils.builtin').diagnostics_to_quickfix() end, { desc = '[D]iagnostics to [Q]uickfix' })
-vim.keymap.set('n', '<leader>dl', function() require('utils.builtin').diagnostics_to_loclist() end, { desc = '[D]iagnostics to [L]ocation list' })
+vim.keymap.set('n', 'D', vim.diagnostic.open_float, { desc = 'Show [D]iagnostic' })
+vim.keymap.set('n', '<leader>dq', function() require('utils.builtin').diagnostics_to_quickfix() end,
+  { desc = '[D]iagnostics to [Q]uickfix' })
+vim.keymap.set('n', '<leader>dl', function() require('utils.builtin').diagnostics_to_loclist() end,
+  { desc = '[D]iagnostics to [L]ocation list' })
 
 -- ============================================================================
 -- FOLDING (UFO plugin integration)
@@ -105,13 +114,16 @@ end, { desc = '[P]eek fold or hover' })
 -- ============================================================================
 
 -- Mark navigation
-vim.keymap.set('n', '<leader>mm', function() require('utils.builtin').set_global_mark('A') end, { desc = '[M]ark set global A' })
-vim.keymap.set('n', '<leader>ma', function() require('utils.builtin').jump_to_mark('A') end, { desc = 'Go to [M]ark [A]' })
+vim.keymap.set('n', '<leader>mm', function() require('utils.builtin').set_global_mark('A') end,
+  { desc = '[M]ark set global A' })
+vim.keymap.set('n', '<leader>ma', function() require('utils.builtin').jump_to_mark('A') end,
+  { desc = 'Go to [M]ark [A]' })
 vim.keymap.set('n', '<leader>ml', '<cmd>marks<cr>', { desc = '[M]arks [L]ist' })
 
 -- Register operations
 vim.keymap.set('n', '<leader>r', '<cmd>registers<cr>', { desc = 'Show [R]egisters' })
-vim.keymap.set('v', '<leader>ry', function() require('utils.builtin').copy_to_clipboard() end, { desc = '[R]egister [Y]ank to clipboard' })
+vim.keymap.set('v', '<leader>ry', function() require('utils.builtin').copy_to_clipboard() end,
+  { desc = '[R]egister [Y]ank to clipboard' })
 vim.keymap.set('n', '<leader>rp', '"+p', { desc = '[R]egister [P]aste from clipboard' })
 
 -- ============================================================================
@@ -144,9 +156,12 @@ vim.keymap.set('t', '<C-k>', '<cmd>wincmd k<cr>', { desc = 'Terminal: move to up
 vim.keymap.set('t', '<C-l>', '<cmd>wincmd l<cr>', { desc = 'Terminal: move to right window' })
 
 -- Terminal creation
-vim.keymap.set('n', '<leader>th', function() require('utils.builtin').create_terminal('horizontal') end, { desc = '[T]erminal [H]orizontal split' })
-vim.keymap.set('n', '<leader>tv', function() require('utils.builtin').create_terminal('vertical') end, { desc = '[T]erminal [V]ertical split' })
-vim.keymap.set('n', '<leader>tt', function() require('utils.builtin').create_terminal('tab') end, { desc = '[T]erminal new [T]ab' })
+vim.keymap.set('n', '<leader>th', function() require('utils.builtin').create_terminal('horizontal') end,
+  { desc = '[T]erminal [H]orizontal split' })
+vim.keymap.set('n', '<leader>tv', function() require('utils.builtin').create_terminal('vertical') end,
+  { desc = '[T]erminal [V]ertical split' })
+vim.keymap.set('n', '<leader>tt', function() require('utils.builtin').create_terminal('tab') end,
+  { desc = '[T]erminal new [T]ab' })
 
 -- ============================================================================
 -- TOGGLES AND OPTIONS
@@ -179,6 +194,6 @@ vim.keymap.set('i', '"', '""<Left>', { desc = 'Auto-close double quotes' })
 vim.keymap.set('i', "'", "''<Left>", { desc = 'Auto-close single quotes' })
 
 -- Smart deletion for pairs
-vim.keymap.set('i', '<BS>', function() 
-  return require('utils.builtin').smart_backspace() 
+vim.keymap.set('i', '<BS>', function()
+  return require('utils.builtin').smart_backspace()
 end, { expr = true, desc = 'Smart backspace for pairs' })
