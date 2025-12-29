@@ -166,20 +166,20 @@ function Tab.setup(config)
 			{ Attribute = { Intensity = "Normal" } },
 			{ Text = " " },
 		}
-		
+
 		-- Add process icon elements
 		local process_elements = get_process(tab)
 		for _, element in ipairs(process_elements) do
 			table.insert(elements, element)
 		end
-		
+
 		-- Add remaining elements
 		table.insert(elements, { Text = " " })
 		table.insert(elements, { Foreground = { Color = colors.fg } })
 		table.insert(elements, { Text = tab_title or "" })
 		table.insert(elements, { Foreground = { Color = colors.bg } })
 		table.insert(elements, { Text = " ▕" })
-		
+
 		return wezterm.format(elements)
 	end)
 end

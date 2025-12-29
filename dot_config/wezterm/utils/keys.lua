@@ -1,13 +1,37 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
+local platform = require("utils.platform")
 
 local Keys = {}
+
+-- Logging utilities
+local function log_error(msg, err)
+    wezterm.log_error("[Keys] " .. msg .. ": " .. tostring(err))
+end
+
+local function safe_call(fn, fallback)
+    local success, result = pcall(fn)
+    if not success then
+        return fallback
+    end
+    return result
+end
 
 -- Smart pane navigation that works with vim/nvim
 local function is_vim(pane)
     -- Check if the current pane is running vim/nvim
-    local process_name = string.gsub(pane:get_foreground_process_name(), "(.*[/\\])(.*)", "%2")
+    local process_name = safe_call(function()
+        return string.gsub(pane:get_foreground_process_name(), "(.*[/\\])(.*)", "%2")
+    end, "")
     return process_name == 'nvim' or process_name == 'vim'
+end
+
+-- Check if vim is in insert mode
+local function is_in_vim_insert_mode(pane)
+    local title = safe_call(function()
+        return pane:get_title()
+    end, "")
+    return title:find("INSERT") ~= nil or title:find("REPLACE") ~= nil
 end
 
 -- Create smart navigation function
@@ -25,11 +49,11 @@ local function navigate_pane_or_vim_split(key, direction)
     end)
 end
 
--- Create smart scrolling function for Ctrl+U and Ctrl+D
+-- Create smart scrolling function for Ctrl+U and Ctrl+D (improved)
 local function smart_scroll(key, scroll_action)
     return wezterm.action_callback(function(window, pane)
-        if is_vim(pane) then
-            -- Send the key to vim/nvim for half-page scrolling
+        if is_vim(pane) and not is_in_vim_insert_mode(pane) then
+            -- Send the key to vim/nvim only in normal mode
             window:perform_action({
                 SendKey = { key = key, mods = 'CTRL' }
             }, pane)
@@ -114,30 +138,48 @@ local function workspace_switcher()
     end)
 end
 
--- Project launcher
+-- Project launcher (platform-aware)
 local function project_launcher()
     return wezterm.action_callback(function(window, pane)
-        local home = os.getenv("HOME")
-        local projects = {
-            { id = home .. "/projects", label = "~/projects" },
-            { id = home .. "/.config", label = "~/.config" },
-            { id = home .. "/Documents", label = "~/Documents" },
-            { id = home .. "/Downloads", label = "~/Downloads" },
-            { id = "/tmp", label = "/tmp" },
-        }
+        local home = platform.get_home_dir()
+        local projects = {}
         
-        -- Add git repositories if available
-        local success, result = pcall(function()
-            local handle = io.popen("find " .. home .. " -name '.git' -type d 2>/dev/null | head -20")
-            for line in handle:lines() do
-                local project_dir = line:gsub("/.git$", "")
-                local project_name = project_dir:match("([^/]+)$")
-                table.insert(projects, {
-                    id = project_dir,
-                    label = "📁 " .. project_name .. " (" .. project_dir .. ")"
-                })
+        -- Platform-specific default directories
+        if platform.is_windows then
+            table.insert(projects, { id = home .. "\\Documents", label = "~/Documents" })
+            table.insert(projects, { id = home .. "\\Downloads", label = "~/Downloads" })
+            table.insert(projects, { id = home .. "\\Desktop", label = "~/Desktop" })
+        else
+            table.insert(projects, { id = home .. "/projects", label = "~/projects" })
+            table.insert(projects, { id = home .. "/.config", label = "~/.config" })
+            table.insert(projects, { id = home .. "/Documents", label = "~/Documents" })
+            table.insert(projects, { id = home .. "/Downloads", label = "~/Downloads" })
+            table.insert(projects, { id = "/tmp", label = "/tmp" })
+        end
+        
+        -- Add git repositories if available (platform-aware)
+        safe_call(function()
+            local cmd
+            if platform.is_windows then
+                cmd = 'dir /s /b /ad "' .. home .. '\\.git" 2>nul | findstr /v "node_modules" | findstr /v "vendor"'
+            else
+                cmd = "find " .. home .. " -name '.git' -type d 2>/dev/null | head -20"
             end
-            handle:close()
+            
+            local handle = io.popen(cmd)
+            if handle then
+                for line in handle:lines() do
+                    local project_dir = line:gsub("[\\/].git$", ""):gsub("[\\/].git[\\/].*$", "")
+                    local project_name = project_dir:match("([^\\/]+)$")
+                    if project_name and project_name ~= "" then
+                        table.insert(projects, {
+                            id = project_dir,
+                            label = "📁 " .. project_name .. " (" .. project_dir .. ")"
+                        })
+                    end
+                end
+                handle:close()
+            end
         end)
         
         window:perform_action(
@@ -146,10 +188,16 @@ local function project_launcher()
                     if not id then
                         return
                     end
+                    local shell_cmd
+                    if platform.is_windows then
+                        shell_cmd = { "powershell.exe", "-NoLogo", "-NoExit", "-Command", "cd '" .. id .. "'" }
+                    else
+                        local shell = os.getenv("SHELL") or "zsh"
+                        shell_cmd = { shell, "-c", "cd '" .. id .. "' && exec " .. shell }
+                    end
+                    
                     inner_window:perform_action(
-                        act.SpawnCommandInNewTab({
-                            args = { "zsh", "-c", "cd " .. id .. " && exec zsh" },
-                        }),
+                        act.SpawnCommandInNewTab({ args = shell_cmd }),
                         inner_pane
                     )
                 end),
@@ -170,14 +218,22 @@ local function enter_copy_mode()
     })
 end
 
--- Quick command runner
+-- Quick command runner (platform-aware)
 local function quick_command()
     return act.PromptInputLine({
         description = 'Run command:',
         action = wezterm.action_callback(function(window, pane, line)
             if line then
+                local cmd
+                if platform.is_windows then
+                    cmd = { "powershell.exe", "-NoLogo", "-Command", line }
+                else
+                    local shell = os.getenv("SHELL") or "sh"
+                    cmd = { shell, "-c", line }
+                end
+                
                 window:perform_action(
-                    act.SpawnCommandInNewTab({ args = { "zsh", "-c", line } }),
+                    act.SpawnCommandInNewTab({ args = cmd }),
                     pane
                 )
             end
@@ -294,11 +350,28 @@ Keys.keys = {
         end),
     })},
     
-    -- Quick applications and tools
-    { key = "g", mods = "LEADER", action = act.SpawnCommandInNewTab({ args = { "lazygit" } }) },
-    { key = "f", mods = "LEADER", action = act.SpawnCommandInNewTab({ args = { "ranger" } }) },
-    { key = "m", mods = "LEADER", action = act.SpawnCommandInNewTab({ args = { "btop" } }) },
-    { key = "v", mods = "LEADER", action = act.SpawnCommandInNewTab({ args = { "nvim" } }) },
+    -- Quick applications and tools (with error handling)
+    { key = "g", mods = "LEADER", action = wezterm.action_callback(function(window, pane)
+        safe_call(function()
+            window:perform_action(act.SpawnCommandInNewTab({ args = { "lazygit" } }), pane)
+        end)
+    end) },
+    { key = "f", mods = "LEADER", action = wezterm.action_callback(function(window, pane)
+        safe_call(function()
+            window:perform_action(act.SpawnCommandInNewTab({ args = { "ranger" } }), pane)
+        end)
+    end) },
+    { key = "m", mods = "LEADER", action = wezterm.action_callback(function(window, pane)
+        safe_call(function()
+            local cmd = platform.is_windows and { "btop" } or { "btop" }
+            window:perform_action(act.SpawnCommandInNewTab({ args = cmd }), pane)
+        end)
+    end) },
+    { key = "v", mods = "LEADER", action = wezterm.action_callback(function(window, pane)
+        safe_call(function()
+            window:perform_action(act.SpawnCommandInNewTab({ args = { "nvim" } }), pane)
+        end)
+    end) },
     
     -- Project and directory navigation
     { key = "o", mods = "LEADER", action = project_launcher() },

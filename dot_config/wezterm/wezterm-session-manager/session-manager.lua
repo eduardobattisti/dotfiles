@@ -1,4 +1,5 @@
 local wezterm = require("wezterm")
+local platform = require("utils.platform")
 local session_manager = {}
 local os = wezterm.target_triple
 
@@ -60,12 +61,19 @@ local function save_to_json_file(data, file_path)
     return false
   end
 
+  -- Ensure directory exists
+  local dir = file_path:match("(.*/)")
+  if dir then
+    platform.ensure_dir(dir)
+  end
+
   local file = io.open(file_path, "w")
   if file then
     file:write(wezterm.json_encode(data))
     file:close()
     return true
   else
+    wezterm.log_error("Failed to write session file: " .. file_path)
     return false
   end
 end
@@ -74,15 +82,33 @@ end
 -- @param workspace_data table: The data structure containing the saved workspace state.
 local function recreate_workspace(window, workspace_data)
   local function extract_path_from_dir(working_directory)
-    if os == "x86_64-pc-windows-msvc" then
-      -- On Windows, transform 'file:///C:/path/to/dir' to 'C:/path/to/dir'
-      return working_directory:gsub("file:///", "")
-    elseif os == "x86_64-unknown-linux-gnu" then
-      -- On Linux, transform 'file://{computer-name}/home/{user}/path/to/dir' to '/home/{user}/path/to/dir'
-      return working_directory:gsub("^.*(/home/)", "/home/")
-    else
-      return working_directory:gsub("^.*(/Users/)", "/Users/")
+    if not working_directory or working_directory == "" then
+      return platform.get_home_dir()
     end
+    
+    -- Handle file:// URIs
+    if working_directory:match("^file://") then
+      working_directory = working_directory:gsub("^file://+", "")
+      
+      -- Windows: file:///C:/path -> C:/path
+      if platform.is_windows then
+        if working_directory:match("^/[A-Za-z]:") then
+          working_directory = working_directory:sub(2)
+        end
+        return platform.normalize_path(working_directory)
+      end
+      
+      -- Linux/Mac: file:///home/user or file://{host}/home/user
+      if working_directory:match("^/") then
+        return working_directory
+      end
+      
+      -- Extract path after hostname
+      local path = working_directory:gsub("^[^/]+", "")
+      return path ~= "" and path or platform.get_home_dir()
+    end
+    
+    return platform.normalize_path(working_directory)
   end
 
   if not workspace_data or not workspace_data.tabs then
@@ -134,9 +160,10 @@ local function recreate_workspace(window, workspace_data)
           direction = 'Bottom'
         end
 
+        local pane_cwd = extract_path_from_dir(pane_data.cwd)
         new_pane = new_tab:active_pane():split({
           direction = direction,
-          cwd = extract_path_from_dir(pane_data.cwd)
+          cwd = pane_cwd
         })
       end
 
@@ -145,15 +172,21 @@ local function recreate_workspace(window, workspace_data)
         break
       end
 
-      -- Restore TTY for Neovim on Linux
-      -- NOTE: cwd is handled differently on windows. maybe extend functionality for windows later
-      -- This could probably be handled better in general
-      if not (os == "x86_64-pc-windows-msvc") then
-        if not (os == "x86_64-pc-windows-msvc") and pane_data.tty:sub(- #"/bin/nvim") == "/bin/nvim" then
-          new_pane:send_text(pane_data.tty .. " ." .. "\n")
-        else
-          -- TODO - With running npm commands (e.g a running web client) this seems to execute Node, without the arguments
-          new_pane:send_text(pane_data.tty .. "\n")
+      -- Restore TTY/program (platform-aware)
+      if pane_data.tty and pane_data.tty ~= "" then
+        local tty = tostring(pane_data.tty)
+          
+        -- Only restore nvim on non-Windows or if path exists
+        if tty:match("nvim$") or tty:match("vim$") then
+          if not platform.is_windows or tty:match("%.exe$") then
+            new_pane:send_text(tty .. " .\n")
+          end
+        elseif not tty:match("bash$") and not tty:match("zsh$") and not tty:match("fish$") then
+          -- Don't restore shell processes, but restore other programs
+          -- Skip if it's a complex command that might not work
+          if not tty:match("%s") then
+            new_pane:send_text(tty .. "\n")
+          end
         end
       end
     end
@@ -186,8 +219,9 @@ end
 --- Loads the saved json file matching the current workspace.
 function session_manager.restore_state(window)
   local workspace_name = window:active_workspace()
-  local file_path = wezterm.home_dir ..
-      "/.config/wezterm/wezterm-session-manager/wezterm_state_" .. workspace_name .. ".json"
+  local session_dir = platform.get_session_dir()
+  local separator = platform.is_windows and "\\" or "/"
+  local file_path = session_dir .. separator .. "wezterm_state_" .. workspace_name .. ".json"
 
   local workspace_data = load_from_json_file(file_path)
   if not workspace_data then
@@ -220,7 +254,9 @@ function session_manager.save_state(window)
   local data = retrieve_workspace_data(window)
 
   -- Construct the file path based on the workspace name
-  local file_path = wezterm.home_dir .. "/.config/wezterm/wezterm-session-manager/wezterm_state_" .. data.name .. ".json"
+  local session_dir = platform.get_session_dir()
+  local separator = platform.is_windows and "\\" or "/"
+  local file_path = session_dir .. separator .. "wezterm_state_" .. data.name .. ".json"
 
   -- Save the workspace data to a JSON file and display the appropriate notification
   if save_to_json_file(data, file_path) then

@@ -1,23 +1,19 @@
--- WezTerm Configuration
--- Enhanced configuration with better organization and additional features
-
 local wezterm = require("wezterm")
 local session_manager = require("wezterm-session-manager/session-manager")
 local mux = wezterm.mux
 local act = wezterm.action
 
 -- Custom modules
+local platform = require("utils.platform")
 local tab = require("utils.tab")
 local theme = require("utils.theme")
 
--- Optional enhanced modules (comment out if you prefer the basic setup)
 local keys_module = require("utils.keys")
 local status_module = require("utils.status")
 
 -- Configuration object
 local config = {}
 
--- Use config builder for newer WezTerm versions
 if wezterm.config_builder then
 	config = wezterm.config_builder()
 end
@@ -26,25 +22,48 @@ end
 -- APPEARANCE & THEME
 -- ===========================
 
--- Color scheme
-config.color_scheme = 'Catppuccin Mocha'
-config.front_end = "OpenGL"
+config.front_end = "WebGpu" -- More efficient than OpenGL
+config.webgpu_power_preference = "HighPerformance"
 
 -- Font configuration
 config.font = wezterm.font_with_fallback({
-	"FiraCode Nerd Font Mono",
-	"JetBrains Mono",
-	"Source Code Pro",
+	{
+		family = "IBM Plex Mono",
+		weight = "Regular",
+		harfbuzz_features = {
+			"calt=1", -- Contextual alternates (ligatures)
+			"clig=1", -- Contextual ligatures
+			"liga=1", -- Standard ligatures
+		},
+	},
+	{ family = "JetBrains Mono", weight = "Regular" },
+	{ family = "Source Code Pro", weight = "Regular" },
+	-- Emoji and symbol fallbacks
+	{ family = "Noto Color Emoji" },
+	{ family = "Segoe UI Emoji" }, -- Windows
+	{ family = "Apple Color Emoji" }, -- macOS
 })
-config.font_size = 12
+config.font_size = platform.get_default_font_size()
+
+-- Better font rendering
+config.freetype_load_target = "Normal"
+config.freetype_render_target = "Normal"
 
 -- Window appearance
 config.window_background_opacity = 0.9
-config.window_padding = {
-	left = 2,
-	right = 2,
-	top = 2,
-	bottom = 2,
+config.window_padding = platform.get_window_padding()
+
+-- Better window management
+config.window_decorations = "RESIZE"
+config.window_close_confirmation = "NeverPrompt"
+config.skip_close_confirmation_for_processes_named = {
+	"bash",
+	"sh",
+	"zsh",
+	"fish",
+	"tmux",
+	"nvim",
+	"vim",
 }
 
 -- Cursor configuration
@@ -64,11 +83,25 @@ config.foreground_text_hsb = {
 	brightness = 1.5,
 }
 
+-- Window sizing
+config.initial_cols = 120
+config.initial_rows = 30
+
+-- Tiling desktop environment support (Linux)
+if platform.is_linux then
+	config.tiling_desktop_environments = {
+		"X11 LG3D",
+		"X11 bspwm",
+		"X11 i3",
+		"X11 dwm",
+	}
+	config.enable_wayland = true
+end
+
 -- ===========================
 -- LEADER KEY CONFIGURATION
 -- ===========================
 
--- Option 1: Use enhanced key bindings (recommended)
 config.leader = keys_module.leader_key
 config.keys = keys_module.keys
 
@@ -106,52 +139,83 @@ config.mouse_bindings = {
 }
 
 -- ===========================
--- LAUNCH MENU
+-- LAUNCH MENU (Cross-platform)
 -- ===========================
 
-config.launch_menu = {
-	{
-		args = { "zsh", "-l" },
-		label = "Zsh Shell",
-	},
-	{
-		args = { "bash", "-l" },
-		label = "Bash Shell",
-	},
-	{
-		args = { "fish", "-l" },
-		label = "Fish Shell",
-	},
-	{
-		args = { "lazygit" },
+local function get_launch_menu()
+	local menu = {}
+
+	if platform.is_windows then
+		table.insert(menu, {
+			label = "PowerShell",
+			args = { "powershell.exe", "-NoLogo" },
+		})
+		table.insert(menu, {
+			label = "CMD",
+			args = { "cmd.exe" },
+		})
+
+		-- Add WSL distributions
+		local wsl_distros = platform.detect_wsl_distros()
+		for _, distro in ipairs(wsl_distros) do
+			table.insert(menu, {
+				label = "WSL - " .. distro,
+				args = { "wsl.exe", "-d", distro },
+			})
+		end
+	else
+		table.insert(menu, {
+			label = "Bash",
+			args = { "bash", "-l" },
+		})
+		table.insert(menu, {
+			label = "Zsh",
+			args = { "zsh", "-l" },
+		})
+		table.insert(menu, {
+			label = "Fish",
+			args = { "fish", "-l" },
+		})
+	end
+
+	-- Universal tools (if available)
+	table.insert(menu, {
 		label = "LazyGit",
-	},
-	{
-		args = { "btop" },
+		args = { "lazygit" },
+	})
+	table.insert(menu, {
 		label = "System Monitor",
-	},
-	{
-		args = { "ranger" },
+		args = platform.is_windows and { "btop" } or { "btop" },
+	})
+	table.insert(menu, {
 		label = "File Manager",
-	},
-}
+		args = { "ranger" },
+	})
+
+	return menu
+end
+
+config.launch_menu = get_launch_menu()
 
 -- ===========================
--- WSL DOMAINS (if needed)
+-- WSL DOMAINS (Auto-detected on Windows)
 -- ===========================
 
-config.wsl_domains = {
-	{
-		name = "WSL:Ubuntu-20.04",
-		distribution = "Ubuntu-20.04",
-		username = "{{ .chezmoi.username }}",
-		default_cwd = "{{ .chezmoi.homeDir }}",
-		default_prog = { "zsh", "-l" },
-	},
-}
-
--- Uncomment to set WSL as default
--- config.default_domain = "WSL:Ubuntu-20.04"
+if platform.is_windows then
+	local wsl_distros = platform.detect_wsl_distros()
+	if #wsl_distros > 0 then
+		config.wsl_domains = {}
+		for _, distro in ipairs(wsl_distros) do
+			table.insert(config.wsl_domains, {
+				name = "WSL:" .. distro,
+				distribution = distro,
+				default_cwd = "~",
+			})
+		end
+		-- Optionally set first distro as default
+		-- config.default_domain = "WSL:" .. wsl_distros[1]
+	end
+end
 
 -- ===========================
 -- EVENT HANDLERS
@@ -171,24 +235,17 @@ wezterm.on("restore_session", function(window)
 end)
 
 -- Option 1: Use enhanced status bar (recommended)
+-- Note: Simplified for WSL compatibility - removed battery, RAM, time/date monitoring
 status_module.setup(config, theme.colors)
-
-
 
 -- ===========================
 -- PERFORMANCE OPTIMIZATIONS
 -- ===========================
 
--- Scrollback and performance
-config.scrollback_lines = 10000
+config.scrollback_lines = 5000
 config.enable_scroll_bar = true
-
--- Performance settings
-config.max_fps = 120
-config.animation_fps = 60
-
--- GPU acceleration
-config.webgpu_power_preference = "HighPerformance"
+config.max_fps = 60
+config.animation_fps = 30
 
 -- ===========================
 -- INITIALIZE CUSTOM MODULES
@@ -224,6 +281,11 @@ table.insert(config.hyperlink_rules, {
 
 -- Unicode and emoji support
 config.unicode_version = 14
+
+-- DPI configuration (platform-specific)
+if platform.is_windows then
+	config.dpi = 96
+end
 
 -- ===========================
 -- RETURN CONFIGURATION
