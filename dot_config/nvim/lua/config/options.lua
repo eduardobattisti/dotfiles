@@ -1,6 +1,3 @@
--- Set <space> as the leader key
--- See `:help mapleader`
---  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
@@ -51,9 +48,9 @@ vim.opt.splitbelow = true
 --  and `:help 'listchars'`
 -- Enhanced listchars for better indentation visualization (replaces indent-blankline)
 vim.opt.list = true
-vim.opt.listchars = { 
-  tab = '» ', 
-  trail = '·', 
+vim.opt.listchars = {
+  tab = '» ',
+  trail = '·',
   nbsp = '␣',
   extends = '❯',
   precedes = '❮',
@@ -107,7 +104,7 @@ vim.opt.writebackup = false -- Don't create backup before overwriting
 vim.opt.swapfile = false -- Disable swap files (rely on undofile)
 
 -- Enhanced diff options
-vim.opt.diffopt:append('linematch:60') -- Better diff algorithm
+vim.opt.diffopt:append 'linematch:60' -- Better diff algorithm
 
 -- Better built-in terminal colors
 vim.opt.termguicolors = true
@@ -130,5 +127,3 @@ vim.o.foldenable = true
 
 -- Load comprehensive border configuration
 require('config.ui.borders').setup()
-
-

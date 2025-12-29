@@ -1,6 +1,3 @@
--- Enhanced floating window border configuration for Neovim
--- This module provides consistent border styling across all floating windows
-
 local M = {}
 
 -- Border styles
@@ -35,7 +32,7 @@ function M.setup()
   end
 
   -- Configure diagnostic floating windows
-  vim.diagnostic.config({
+  vim.diagnostic.config {
     float = {
       border = M.get_border(),
       source = 'always',
@@ -61,12 +58,12 @@ function M.setup()
         [vim.diagnostic.severity.WARN] = '',
         [vim.diagnostic.severity.INFO] = '',
         [vim.diagnostic.severity.HINT] = '',
-      }
+      },
     },
     underline = true,
     update_in_insert = false,
     severity_sort = true,
-  })
+  }
 
   -- Configure hover and signature help handlers
   vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, {
@@ -89,7 +86,7 @@ function M.setup()
     callback = function()
       local win = vim.api.nvim_get_current_win()
       local config = vim.api.nvim_win_get_config(win)
-      
+
       -- Check if it's a floating window without borders
       if config.relative ~= '' and not config.border then
         vim.schedule(function()
@@ -112,48 +109,48 @@ function M.setup()
         fg = vim.api.nvim_get_hl(0, { name = 'Normal' }).fg,
         bg = vim.api.nvim_get_hl(0, { name = 'NormalFloat' }).bg,
       })
-      
+
       vim.api.nvim_set_hl(0, 'LspFloatWinBorder', {
-        link = 'FloatBorder'
+        link = 'FloatBorder',
       })
-      
+
       vim.api.nvim_set_hl(0, 'DiagnosticFloatingError', {
-        link = 'DiagnosticError'
+        link = 'DiagnosticError',
       })
-      
+
       vim.api.nvim_set_hl(0, 'DiagnosticFloatingWarn', {
-        link = 'DiagnosticWarn'
+        link = 'DiagnosticWarn',
       })
-      
+
       vim.api.nvim_set_hl(0, 'DiagnosticFloatingInfo', {
-        link = 'DiagnosticInfo'
+        link = 'DiagnosticInfo',
       })
-      
+
       vim.api.nvim_set_hl(0, 'DiagnosticFloatingHint', {
-        link = 'DiagnosticHint'
+        link = 'DiagnosticHint',
       })
     end,
   })
 
   -- Trigger initial highlight setup
   vim.schedule(function()
-    vim.cmd('doautocmd ColorScheme')
+    vim.cmd 'doautocmd ColorScheme'
   end)
 end
 
 -- Utility function to create bordered floating window
 function M.create_floating_window(content, opts)
   opts = opts or {}
-  
+
   local width = opts.width or math.floor(vim.o.columns * 0.8)
   local height = opts.height or math.floor(vim.o.lines * 0.8)
-  
+
   -- Calculate position to center the window
   local col = math.floor((vim.o.columns - width) / 2)
   local row = math.floor((vim.o.lines - height) / 2)
-  
+
   local buf = vim.api.nvim_create_buf(false, true)
-  
+
   local win_opts = {
     relative = 'editor',
     width = width,
@@ -166,17 +163,18 @@ function M.create_floating_window(content, opts)
     title = opts.title,
     title_pos = opts.title_pos or 'center',
   }
-  
+
   local win = vim.api.nvim_open_win(buf, true, win_opts)
-  
+
   if content then
     if type(content) == 'string' then
       content = vim.split(content, '\n')
     end
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
   end
-  
+
   return buf, win
 end
 
 return M
+

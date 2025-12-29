@@ -3,7 +3,7 @@ return {
   dependencies = {
     'nvim-neotest/nvim-nio',
     'nvim-lua/plenary.nvim',
-    'antoinemadec/FixCursorHold.nvim',
+    -- 'antoinemadec/FixCursorHold.nvim', -- Removed: not needed on Neovim 0.9+
     'nvim-treesitter/nvim-treesitter',
   },
 

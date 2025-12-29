@@ -2,14 +2,14 @@ return {
   'neovim/nvim-lspconfig',
   dependencies = {
     -- Automatically install LSPs and related tools to stdpath for Neovim
-    { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
+    { 'williamboman/mason.nvim', config = true },
     'williamboman/mason-lspconfig.nvim',
     'WhoIsSethDaniel/mason-tool-installer.nvim',
-    { 'j-hui/fidget.nvim',       opts = {} },
+    { 'j-hui/fidget.nvim', opts = {} },
 
     -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
     -- used for completion, annotations and signatures of Neovim apis
-    { 'folke/neodev.nvim',       opts = {} },
+    { 'folke/neodev.nvim', opts = {} },
   },
 
   config = function()
@@ -23,10 +23,8 @@ return {
         lsp_utils.keymap('gr', require('telescope.builtin').lsp_references, event.buf, '[G]oto [R]eferences')
         lsp_utils.keymap('gI', require('telescope.builtin').lsp_implementations, event.buf, '[G]oto [I]mplementation')
         lsp_utils.keymap('<leader>lD', require('telescope.builtin').lsp_type_definitions, event.buf, 'Type [D]efinition')
-        lsp_utils.keymap('<leader>lds', require('telescope.builtin').lsp_document_symbols, event.buf,
-          '[D]ocument [S]ymbols')
-        lsp_utils.keymap('<leader>lws', require('telescope.builtin').lsp_dynamic_workspace_symbols, event.buf,
-          '[W]orkspace [S]ymbols')
+        lsp_utils.keymap('<leader>lds', require('telescope.builtin').lsp_document_symbols, event.buf, '[D]ocument [S]ymbols')
+        lsp_utils.keymap('<leader>lws', require('telescope.builtin').lsp_dynamic_workspace_symbols, event.buf, '[W]orkspace [S]ymbols')
         lsp_utils.keymap('<leader>lr', vim.lsp.buf.rename, event.buf, '[R]ename')
         lsp_utils.keymap('<leader>la', vim.lsp.buf.code_action, event.buf, '[C]ode [A]ction')
         lsp_utils.keymap('gD', vim.lsp.buf.declaration, event.buf, '[G]oto [D]eclaration')
@@ -131,10 +129,6 @@ return {
     -- Install tools with mason-tool-installer
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-    -- LSP servers and clients are able to communicate to each other what features they support.
-    --  By default, Neovim doesn't support everything that is in the LSP specification.
-    --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
-    --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
@@ -153,10 +147,7 @@ return {
       ['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = 'rounded' }),
     }
 
-    -- Setup mason-lspconfig with automatic server enablement
-    -- This will automatically call vim.lsp.enable() for installed servers
     require('mason-lspconfig').setup {
-      -- Automatically install these servers
       ensure_installed = {
         'cssls',
         'css_variables',
@@ -165,90 +156,95 @@ return {
         'vue_ls',
         'vtsls',
       },
-      -- Automatically enable installed servers
-      automatic_enable = true,
+      automatic_enable = {
+        exclude = { 'ts_ls' },
+      },
     }
 
-    -- Configure specific server options using vim.lsp.config (Neovim 0.11+)
-    -- This allows us to configure servers without disabling automatic_enable
+    local default_config = {
+      capabilities = capabilities,
+      handlers = handlers,
+    }
 
-    -- Configure HTML server to stop for Vue files
-    vim.lsp.config('html', {
-      on_attach = function(client, bufnr)
-        local filetype = vim.api.nvim_get_option_value('filetype', { buf = bufnr })
-        if filetype == 'vue' then
-          client.stop()
-        end
-      end,
-    })
+    vim.lsp.config(
+      'html',
+      vim.tbl_deep_extend('force', default_config, {
+        on_attach = function(client, bufnr)
+          local filetype = vim.api.nvim_get_option_value('filetype', { buf = bufnr })
+          if filetype == 'vue' then
+            client.stop()
+          end
+        end,
+      })
+    )
 
-    -- Configure tailwindcss server with custom settings
+    vim.lsp.config('cssls', default_config)
+
+    vim.lsp.config('css_variables', default_config)
+
     vim.lsp.config('tailwindcss', {
       capabilities = require('config.lsp.servers.tailwindcss').capabilities,
+      handlers = handlers,
       filetypes = require('config.lsp.servers.tailwindcss').filetypes,
       on_attach = require('config.lsp.servers.tailwindcss').on_attach,
       settings = require('config.lsp.servers.tailwindcss').settings,
     })
 
-    -- Configure intelephense (PHP) server with custom settings
-    vim.lsp.config('intelephense', {
-      capabilities = capabilities,
-      filetypes = require('config.lsp.servers.intelephense').filetypes,
-      settings = {
-        intelephense = require('config.lsp.servers.intelephense').settings,
-      },
-    })
+    vim.lsp.config(
+      'intelephense',
+      vim.tbl_deep_extend('force', default_config, {
+        filetypes = require('config.lsp.servers.intelephense').filetypes,
+        settings = {
+          intelephense = require('config.lsp.servers.intelephense').settings,
+        },
+      })
+    )
 
     vim.lsp.config('vtsls', {
       capabilities = capabilities,
-      handlers = require('config.lsp.servers.vtsls').handlers,
+      handlers = vim.tbl_extend('force', handlers, require('config.lsp.servers.vtsls').handlers or {}),
       on_attach = require('config.lsp.servers.vtsls').on_attach,
       filetypes = require('config.lsp.servers.vtsls').filetypes,
       settings = require('config.lsp.servers.vtsls').settings,
     })
 
-    -- Configure vue_ls (Vue Language Server) for template and style support
-    vim.lsp.config('vue_ls', {
-      capabilities = capabilities,
-      on_init = function(client)
-        client.handlers['tsserver/request'] = function(_, result, context)
-          local ts_clients = vim.lsp.get_clients { bufnr = context.bufnr, name = 'ts_ls' }
-          local vtsls_clients = vim.lsp.get_clients { bufnr = context.bufnr, name = 'vtsls' }
-          local clients = {}
+    vim.lsp.config(
+      'vue_ls',
+      vim.tbl_deep_extend('force', default_config, {
+        on_init = function(client)
+          client.handlers['tsserver/request'] = function(_, result, context)
+            local ts_clients = vim.lsp.get_clients { bufnr = context.bufnr, name = 'ts_ls' }
+            local vtsls_clients = vim.lsp.get_clients { bufnr = context.bufnr, name = 'vtsls' }
+            local clients = {}
 
-          vim.list_extend(clients, ts_clients)
-          vim.list_extend(clients, vtsls_clients)
+            vim.list_extend(clients, ts_clients)
+            vim.list_extend(clients, vtsls_clients)
 
-          if #clients == 0 then
-            vim.notify('Could not find `vtsls` or `ts_ls` lsp client, `vue_ls` would not work without it.',
-              vim.log.levels.ERROR)
-            return
+            if #clients == 0 then
+              vim.notify('Could not find `vtsls` or `ts_ls` lsp client, `vue_ls` would not work without it.', vim.log.levels.ERROR)
+              return
+            end
+            local ts_client = clients[1]
+
+            local param = unpack(result)
+            local id, command, payload = unpack(param)
+            ts_client:exec_cmd({
+              title = 'vue_request_forward',
+              command = 'typescript.tsserverRequest',
+              arguments = {
+                command,
+                payload,
+              },
+            }, { bufnr = context.bufnr }, function(_, r)
+              local response = r and r.body
+              local response_data = { { id, response } }
+
+              ---@diagnostic disable-next-line: param-type-mismatch
+              client:notify('tsserver/response', response_data)
+            end)
           end
-          local ts_client = clients[1]
-
-          local param = unpack(result)
-          local id, command, payload = unpack(param)
-          ts_client:exec_cmd({
-            title = 'vue_request_forward', -- You can give title anything as it's used to represent a command in the UI, `:h Client:exec_cmd`
-            command = 'typescript.tsserverRequest',
-            arguments = {
-              command,
-              payload,
-            },
-          }, { bufnr = context.bufnr }, function(_, r)
-            local response = r and r.body
-            -- TODO: handle error or response nil here, e.g. logging
-            -- NOTE: Do NOT return if there's an error or no response, just return nil back to the vue_ls to prevent memory leak
-            local response_data = { { id, response } }
-
-            ---@diagnostic disable-next-line: param-type-mismatch
-            client:notify('tsserver/response', response_data)
-          end)
-        end
-      end,
-    })
-
-    -- Skip ts_ls as it's explicitly not needed when using vtsls
-    vim.lsp.config('ts_ls', { enabled = false })
+        end,
+      })
+    )
   end,
 }

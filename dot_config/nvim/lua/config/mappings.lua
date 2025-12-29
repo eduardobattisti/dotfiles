@@ -2,6 +2,9 @@
 -- CORE EDITOR MAPPINGS
 -- ============================================================================
 
+-- Exit insert mode with jk
+vim.keymap.set('i', 'jk', '<Esc>', { desc = 'Exit insert mode' })
+
 -- Clear search highlights
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear search highlights' })
 
@@ -11,13 +14,30 @@ vim.keymap.set('n', '<leader>s', ':%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left>
 vim.keymap.set('v', '<leader>s', ':s/\\%V', { desc = '[S]ubstitute in visual selection' })
 vim.keymap.set('n', '<leader>S', ':%s/', { desc = '[S]ubstitute globally' })
 
--- Better search navigation
-vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Next search result (centered)' })
-vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Previous search result (centered)' })
+-- Better search navigation (LazyVim style - direction always consistent)
+vim.keymap.set('n', 'n', "'Nn'[v:searchforward].'zv'", { expr = true, desc = 'Next search result (centered)' })
+vim.keymap.set('x', 'n', "'Nn'[v:searchforward]", { expr = true, desc = 'Next search result' })
+vim.keymap.set('o', 'n', "'Nn'[v:searchforward]", { expr = true, desc = 'Next search result' })
+vim.keymap.set('n', 'N', "'nN'[v:searchforward].'zv'", { expr = true, desc = 'Previous search result (centered)' })
+vim.keymap.set('x', 'N', "'nN'[v:searchforward]", { expr = true, desc = 'Previous search result' })
+vim.keymap.set('o', 'N', "'nN'[v:searchforward]", { expr = true, desc = 'Previous search result' })
+
+-- Better vertical movement (wrapped lines)
+vim.keymap.set({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", expr = true, silent = true })
+vim.keymap.set({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true, silent = true })
+vim.keymap.set({ "n", "x" }, "<Down>", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", expr = true, silent = true })
+vim.keymap.set({ "n", "x" }, "<Up>", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true, silent = true })
 
 -- Enhanced scrolling
 vim.keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Scroll down half page (centered)' })
 vim.keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Scroll up half page (centered)' })
+
+-- Undo breakpoints at punctuation (finer-grained undo)
+vim.keymap.set("i", ",", ",<c-g>u")
+vim.keymap.set("i", ".", ".<c-g>u")
+vim.keymap.set("i", ";", ";<c-g>u")
+vim.keymap.set("i", "!", "!<c-g>u")
+vim.keymap.set("i", "?", "?<c-g>u")
 
 -- Save shortcuts
 vim.keymap.set('n', '<C-s>', '<cmd>w<cr>', { desc = 'Save current buffer' })
@@ -39,7 +59,9 @@ vim.keymap.set('n', '<C-Right>', '<C-w>>', { desc = 'Increase window width' })
 vim.keymap.set('n', '<C-Up>', '<C-w>+', { desc = 'Increase window height' })
 vim.keymap.set('n', '<C-Down>', '<C-w>-', { desc = 'Decrease window height' })
 
--- Window splits
+-- Window splits (visual indicators + original)
+vim.keymap.set("n", "<leader>-", "<C-W>s", { desc = "Split Window Below" })
+vim.keymap.set("n", "<leader>|", "<C-W>v", { desc = "Split Window Right" })
 vim.keymap.set('n', '<leader>wv', '<C-w>v', { desc = 'Split [W]indow [V]ertically' })
 vim.keymap.set('n', '<leader>wh', '<C-w>s', { desc = 'Split [W]indow [H]orizontally' })
 vim.keymap.set('n', '<leader>we', '<C-w>=', { desc = '[W]indow [E]qual size' })
@@ -48,11 +70,19 @@ vim.keymap.set('n', '<leader>wc', function() require('utils.builtin').smart_clos
 vim.keymap.set('n', '<leader>wm', function() require('utils.builtin').toggle_maximize_window() end,
   { desc = '[W]indow [M]aximize toggle' })
 
--- Buffer navigation
+-- Buffer navigation (LazyVim style - more ergonomic)
+vim.keymap.set('n', '<S-h>', '<cmd>bprevious<cr>', { desc = 'Prev Buffer' })
+vim.keymap.set('n', '<S-l>', '<cmd>bnext<cr>', { desc = 'Next Buffer' })
+vim.keymap.set('n', '[b', '<cmd>bprevious<cr>', { desc = 'Prev Buffer' })
+vim.keymap.set('n', ']b', '<cmd>bnext<cr>', { desc = 'Next Buffer' })
+vim.keymap.set('n', '<leader>bb', '<cmd>e #<cr>', { desc = 'Switch to Other Buffer' })
+vim.keymap.set('n', '<leader>`', '<cmd>e #<cr>', { desc = 'Switch to Other Buffer' })
+-- Keep original mappings for backward compatibility
 vim.keymap.set('n', '<leader>bn', '<cmd>bnext<cr>', { desc = '[B]uffer [N]ext' })
 vim.keymap.set('n', '<leader>bp', '<cmd>bprevious<cr>', { desc = '[B]uffer [P]revious' })
-vim.keymap.set('n', '<leader>bd', function() require('utils.builtin').smart_delete_buffer() end,
-  { desc = '[B]uffer [D]elete (smart)' })
+-- Buffer deletion now handled by Snacks (see snacks.lua)
+-- vim.keymap.set('n', '<leader>bd', function() require('utils.builtin').smart_delete_buffer() end,
+--   { desc = '[B]uffer [D]elete (smart)' })
 vim.keymap.set('n', '<leader>ba', function() require('utils.builtin').delete_other_buffers() end,
   { desc = '[B]uffer delete [A]ll except current' })
 
@@ -83,16 +113,43 @@ vim.keymap.set('n', '<leader>lt', function() require('utils.builtin').toggle_loc
   { desc = '[L]ocation list [T]oggle' })
 
 -- ============================================================================
--- DIAGNOSTICS
+-- DIAGNOSTICS (Enhanced with severity filtering)
 -- ============================================================================
 
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Previous diagnostic' })
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Next diagnostic' })
+-- Better diagnostic navigation with severity filtering
+local diagnostic_goto = function(next, severity)
+  return function()
+    vim.diagnostic.jump({
+      count = (next and 1 or -1) * vim.v.count1,
+      severity = severity and vim.diagnostic.severity[severity] or nil,
+      float = true,
+    })
+  end
+end
+
+vim.keymap.set("n", "]d", diagnostic_goto(true), { desc = "Next Diagnostic" })
+vim.keymap.set("n", "[d", diagnostic_goto(false), { desc = "Prev Diagnostic" })
+vim.keymap.set("n", "]e", diagnostic_goto(true, "ERROR"), { desc = "Next Error" })
+vim.keymap.set("n", "[e", diagnostic_goto(false, "ERROR"), { desc = "Prev Error" })
+vim.keymap.set("n", "]w", diagnostic_goto(true, "WARN"), { desc = "Next Warning" })
+vim.keymap.set("n", "[w", diagnostic_goto(false, "WARN"), { desc = "Prev Warning" })
 vim.keymap.set('n', 'D', vim.diagnostic.open_float, { desc = 'Show [D]iagnostic' })
 vim.keymap.set('n', '<leader>dq', function() require('utils.builtin').diagnostics_to_quickfix() end,
   { desc = '[D]iagnostics to [Q]uickfix' })
 vim.keymap.set('n', '<leader>dl', function() require('utils.builtin').diagnostics_to_loclist() end,
   { desc = '[D]iagnostics to [L]ocation list' })
+
+-- ============================================================================
+-- TAB MANAGEMENT (Complete workflow)
+-- ============================================================================
+
+vim.keymap.set("n", "<leader><tab>l", "<cmd>tablast<cr>", { desc = "Last Tab" })
+vim.keymap.set("n", "<leader><tab>o", "<cmd>tabonly<cr>", { desc = "Close Other Tabs" })
+vim.keymap.set("n", "<leader><tab>f", "<cmd>tabfirst<cr>", { desc = "First Tab" })
+vim.keymap.set("n", "<leader><tab><tab>", "<cmd>tabnew<cr>", { desc = "New Tab" })
+vim.keymap.set("n", "<leader><tab>]", "<cmd>tabnext<cr>", { desc = "Next Tab" })
+vim.keymap.set("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close Tab" })
+vim.keymap.set("n", "<leader><tab>[", "<cmd>tabprevious<cr>", { desc = "Previous Tab" })
 
 -- ============================================================================
 -- FOLDING (UFO plugin integration)
@@ -164,7 +221,7 @@ vim.keymap.set('n', '<leader>tt', function() require('utils.builtin').create_ter
   { desc = '[T]erminal new [T]ab' })
 
 -- ============================================================================
--- TOGGLES AND OPTIONS
+-- TOGGLES AND OPTIONS (Note: More toggles available via Snacks - see snacks.lua)
 -- ============================================================================
 
 vim.keymap.set('n', '<leader>rn', '<cmd>set rnu!<cr>', { desc = 'Toggle [R]elative [N]umbers' })
@@ -197,3 +254,76 @@ vim.keymap.set('i', "'", "''<Left>", { desc = 'Auto-close single quotes' })
 vim.keymap.set('i', '<BS>', function()
   return require('utils.builtin').smart_backspace()
 end, { expr = true, desc = 'Smart backspace for pairs' })
+
+-- ============================================================================
+-- NEW UTILITIES (LazyVim-inspired)
+-- ============================================================================
+
+-- Better escape (clears search + stops snippets)
+vim.keymap.set({ "i", "n", "s" }, "<esc>", function()
+  vim.cmd("noh")
+  -- Stop snippet if using LuaSnip
+  local ok, luasnip = pcall(require, "luasnip")
+  if ok and luasnip.in_snippet() then
+    luasnip.unlink_current()
+  end
+  return "<esc>"
+end, { expr = true, desc = "Escape and Clear hlsearch" })
+
+-- Better redraw
+vim.keymap.set("n", "<leader>ur", "<Cmd>nohlsearch<Bar>diffupdate<Bar>normal! <C-L><CR>",
+  { desc = "Redraw / Clear hlsearch / Diff Update" })
+
+-- Better commenting (requires Comment.nvim)
+vim.keymap.set("n", "gco", "o<esc>Vcx<esc><cmd>normal gcc<cr>fxa<bs>", { desc = "Add Comment Below" })
+vim.keymap.set("n", "gcO", "O<esc>Vcx<esc><cmd>normal gcc<cr>fxa<bs>", { desc = "Add Comment Above" })
+
+-- Formatting (tries conform.nvim, falls back to LSP)
+vim.keymap.set({ "n", "x" }, "<leader>cf", function()
+  local ok, conform = pcall(require, "conform")
+  if ok then
+    conform.format({ async = true, lsp_fallback = true })
+  else
+    vim.lsp.buf.format({ async = true })
+  end
+end, { desc = "Format" })
+
+-- Quit all
+vim.keymap.set("n", "<leader>qq", "<cmd>qa<cr>", { desc = "Quit All" })
+
+-- Inspect utilities
+vim.keymap.set("n", "<leader>ui", vim.show_pos, { desc = "Inspect Pos" })
+vim.keymap.set("n", "<leader>uI", function() 
+  vim.treesitter.inspect_tree() 
+  vim.api.nvim_input("I")
+end, { desc = "Inspect Tree" })
+
+-- New file
+vim.keymap.set("n", "<leader>fn", "<cmd>enew<cr>", { desc = "New File" })
+
+-- Location/Quickfix list toggles
+vim.keymap.set("n", "<leader>xl", function()
+  local success, err = pcall(function()
+    if vim.fn.getloclist(0, { winid = 0 }).winid ~= 0 then
+      vim.cmd.lclose()
+    else
+      vim.cmd.lopen()
+    end
+  end)
+  if not success and err then
+    vim.notify(err, vim.log.levels.ERROR)
+  end
+end, { desc = "Location List" })
+
+vim.keymap.set("n", "<leader>xq", function()
+  local success, err = pcall(function()
+    if vim.fn.getqflist({ winid = 0 }).winid ~= 0 then
+      vim.cmd.cclose()
+    else
+      vim.cmd.copen()
+    end
+  end)
+  if not success and err then
+    vim.notify(err, vim.log.levels.ERROR)
+  end
+end, { desc = "Quickfix List" })

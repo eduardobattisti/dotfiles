@@ -1,5 +1,6 @@
 return {
   'akinsho/toggleterm.nvim',
+  enabled = false, -- Replaced by Snacks.nvim terminal
   version = '*',
   opts = {
     direction = 'float',
