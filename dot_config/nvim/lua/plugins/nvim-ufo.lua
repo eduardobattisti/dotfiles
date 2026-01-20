@@ -27,9 +27,9 @@ return {
     vim.o.foldenable = true
   end,
   config = function(_, opts)
-    local ufo = require('ufo')
+    local ufo = require 'ufo'
     ufo.setup(opts)
-    
+
     -- Enhanced folding keymaps
     vim.keymap.set('n', 'zR', ufo.openAllFolds, { desc = 'Open all folds' })
     vim.keymap.set('n', 'zM', ufo.closeAllFolds, { desc = 'Close all folds' })

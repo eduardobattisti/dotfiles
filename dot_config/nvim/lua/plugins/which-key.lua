@@ -13,6 +13,7 @@ return {
 
     -- Document key groups for better navigation
     require('which-key').register {
+      ['<leader>a'] = { name = '[A]I', _ = 'which_key_ignore' },
       ['<leader>b'] = { name = '[B]uffer', _ = 'which_key_ignore' },
       ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
       ['<leader>d'] = { name = '[D]iagnostic', _ = 'which_key_ignore' },
@@ -35,6 +36,7 @@ return {
     }
     -- Visual mode groups
     require('which-key').register({
+      ['<leader>a'] = { '[A]I' },
       ['<leader>h'] = { 'Git [H]unk' },
       ['<leader>r'] = { '[R]egister' },
       ['<leader>s'] = { '[S]ubstitute' },
