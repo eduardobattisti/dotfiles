@@ -1,30 +1,30 @@
 -- ============================================================================
 -- ENVIRONMENT DETECTION UTILITY
--- Detects whether running on work or personal machine
+-- Detects whether running on cursor_cli or personal machine
 -- ============================================================================
 
 local M = {}
 
 -- Environment types
-M.WORK = 'work'
+M.CURSOR_CLI = 'cursor_cli'
 M.PERSONAL = 'personal'
 
 --- Get the current environment
 --- Checks NVIM_ENV environment variable
 --- Defaults to 'personal' if not set
----@return string 'work' | 'personal'
+---@return string 'cursor_cli' | 'personal'
 function M.get_env()
   local env = vim.env.NVIM_ENV or M.PERSONAL
-  if env == M.WORK or env == M.PERSONAL then
+  if env == M.CURSOR_CLI or env == M.PERSONAL then
     return env
   end
   return M.PERSONAL
 end
 
---- Check if running in work environment
+--- Check if running in cursor_cli environment
 ---@return boolean
-function M.is_work()
-  return M.get_env() == M.WORK
+function M.is_cursor_cli()
+  return M.get_env() == M.CURSOR_CLI
 end
 
 --- Check if running in personal environment
@@ -37,8 +37,8 @@ end
 ---@return string
 function M.get_display_name()
   local env = M.get_env()
-  if env == M.WORK then
-    return 'Work (Cursor CLI)'
+  if env == M.CURSOR_CLI then
+    return 'Cursor CLI'
   else
     return 'Personal (GitHub Copilot)'
   end
@@ -50,3 +50,4 @@ function M.notify_env()
 end
 
 return M
+

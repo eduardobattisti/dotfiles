@@ -1,18 +1,18 @@
 -- ============================================================================
 -- AI PLUGINS
--- Conditional loading based on environment (work vs personal)
--- Work: Cursor CLI via cursor-agent.nvim
+-- Conditional loading based on environment (cursor_cli vs personal)
+-- Cursor CLI: cursor-agent.nvim
 -- Personal: GitHub Copilot + CopilotChat.nvim
 -- ============================================================================
 
 local env = require 'utils.env'
 
 -- ============================================================================
--- CURSOR AGENT (WORK ENVIRONMENT)
+-- CURSOR AGENT (CURSOR CLI ENVIRONMENT)
 -- ============================================================================
 local cursor_agent_spec = {
   'aug6th/cursoragent.nvim',
-  cond = env.is_work,
+  cond = env.is_cursor_cli,
   dependencies = {
     'nvim-lua/plenary.nvim',
   },
@@ -135,7 +135,7 @@ local copilot_chat_spec = {
   },
   config = function()
     require('CopilotChat').setup {
-      model = 'claude-4.5-sonnet', -- Default model, can be changed with /model
+      model = 'gpt-5-codex', -- Default model, can be changed with /model (Claude 4.5)
       temperature = 0.1,
 
       -- Window configuration
@@ -148,6 +148,13 @@ local copilot_chat_spec = {
 
       -- Show diffs
       show_diff = true,
+
+      mappings = {
+        accept_diff = {
+          normal = 'gy',
+          insert = '<C-y>',
+        },
+      },
 
       -- Headers
       headers = {
@@ -418,4 +425,3 @@ return {
   copilot_spec,
   copilot_chat_spec,
 }
-
