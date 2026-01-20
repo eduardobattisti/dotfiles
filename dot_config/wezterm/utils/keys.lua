@@ -285,9 +285,9 @@ end
 Keys.leader_key = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
 
 Keys.keys = {
-    -- System integration
-    { key = "V", mods = "CTRL", action = act.PasteFrom("Clipboard") },
-    { key = "C", mods = "CTRL", action = act.CopyTo("ClipboardAndPrimarySelection") },
+    -- System integration (lowercase keys for better compatibility)
+    { key = "v", mods = "CTRL|SHIFT", action = act.PasteFrom("Clipboard") },
+    { key = "c", mods = "CTRL|SHIFT", action = act.CopyTo("Clipboard") },
     
     -- Smart pane navigation (works with vim/nvim)
     { key = "h", mods = "CTRL", action = navigate_pane_or_vim_split("h", "Left") },
