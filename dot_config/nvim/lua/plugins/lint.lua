@@ -7,7 +7,7 @@ return {
       lint.linters_by_ft = {
         markdown = { 'markdownlint' },
         php = { 'phpcs' },
-        js = { 'biomejs' },
+        javascript = { 'biomejs' },
       }
 
       -- Create autocommand which carries out the actual linting

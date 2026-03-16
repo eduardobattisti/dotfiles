@@ -18,21 +18,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 
 local file_group = vim.api.nvim_create_augroup('FileManagement', { clear = true })
 
--- Handle directory opening with netrw (replaces neo-tree auto-loading)
-vim.api.nvim_create_autocmd('BufEnter', {
-  group = file_group,
-  desc = 'Open netrw when entering directory',
-  callback = function()
-    local bufname = vim.api.nvim_buf_get_name(0)
-    if bufname == '' then return end
-    
-    local stats = (vim.uv or vim.loop).fs_stat(bufname)
-    if stats and stats.type == 'directory' then
-      vim.cmd.Explore()
-    end
-  end,
-})
-
 -- Auto-save when focus is lost
 vim.api.nvim_create_autocmd({ 'FocusLost', 'BufLeave' }, {
   group = file_group,

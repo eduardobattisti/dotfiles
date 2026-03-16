@@ -13,7 +13,14 @@ return { -- Autoformat
   },
   opts = {
     notify_on_error = false,
-    format_on_save = { timeout_ms = 500, lsp_fallback = true },
+    format_on_save = function(bufnr)
+      -- Skip formatting for large files (> 200KB)
+      local bufname = vim.api.nvim_buf_get_name(bufnr)
+      if vim.fn.getfsize(bufname) > 200000 then
+        return
+      end
+      return { timeout_ms = 500, lsp_fallback = true }
+    end,
     -- format_on_save = function(bufnr)
     --   -- Disable "format_on_save lsp_fallback" for languages that don't
     --   -- have a well standardized coding style. You can add additional
@@ -27,12 +34,18 @@ return { -- Autoformat
     formatters_by_ft = {
       lua = { 'stylua' },
       php = { 'phpcbf' },
-      -- Conform can also run multiple formatters sequentially
-      -- python = { "isort", "black" },
-      --
-      -- You can use a sub-list to tell conform to run *until* a formatter
-      -- is found.
-      -- javascript = { { "prettierd", "prettier" } },
+      javascript = { { 'prettierd', 'prettier' } },
+      typescript = { { 'prettierd', 'prettier' } },
+      javascriptreact = { { 'prettierd', 'prettier' } },
+      typescriptreact = { { 'prettierd', 'prettier' } },
+      vue = { { 'prettierd', 'prettier' } },
+      json = { { 'prettierd', 'prettier' } },
+      jsonc = { { 'prettierd', 'prettier' } },
+      html = { { 'prettierd', 'prettier' } },
+      css = { { 'prettierd', 'prettier' } },
+      scss = { { 'prettierd', 'prettier' } },
+      yaml = { { 'prettierd', 'prettier' } },
+      markdown = { { 'prettierd', 'prettier' } },
     },
   },
 }

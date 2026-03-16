@@ -7,9 +7,7 @@
 -- kickstart.nvim and not kitchen-sink.nvim ;)
 
 return {
-  -- NOTE: Yes, you can install new plugins here!
   'mfussenegger/nvim-dap',
-  -- NOTE: And you can specify dependencies as well
   dependencies = {
     -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
@@ -127,5 +125,26 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
+
+    -- PHP debug adapter (vscode-php-debug via Mason)
+    local php_debug_package = require('mason-registry').get_package('php-debug-adapter')
+    if php_debug_package then
+      dap.adapters.php = {
+        type = 'executable',
+        command = 'node',
+        args = { php_debug_package:get_install_path() .. '/extension/out/phpDebug.js' },
+      }
+
+      dap.configurations.php = {
+        {
+          type = 'php',
+          request = 'launch',
+          name = 'Listen for Xdebug',
+          port = 9003,
+        },
+      }
+    else
+      vim.notify('php-debug-adapter not found in Mason. Install with :MasonInstall php-debug-adapter', vim.log.levels.WARN)
+    end
   end,
 }

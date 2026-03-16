@@ -18,7 +18,7 @@ A modular, fast, and modern Neovim configuration.
    ```sh
    git clone <this-repo-url> ~/.config/nvim
    ```
-3. **Start Neovim**  
+3. **Start Neovim**
    The first launch will automatically install plugins.
 
 ## Directory Structure
@@ -45,11 +45,11 @@ nvim/
 
 ## Customization
 
-- **Add plugins:**  
+- **Add plugins:**
   Create a new file in `lua/plugins/` with your plugin spec.
-- **Change settings:**  
+- **Change settings:**
   Edit files in `lua/config/` for options, mappings, and autocmds.
-- **LSP servers:**  
+- **LSP servers:**
   Add or modify configs in `lua/config/lsp/servers/`.
 
 ## Credits & Inspiration

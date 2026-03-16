@@ -2,27 +2,74 @@ return {
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter-textobjects',
+    },
     opts = function(_, opts)
       opts.ensure_installed = {
-        'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc',
+        'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'vim', 'vimdoc',
         -- Frontend & web
         'javascript', 'typescript', 'tsx', 'json', 'yaml', 'css', 'scss', 'html', 'vue', 'graphql', 'dockerfile',
         -- Backend
         'php', 'go',
       }
-      -- Autoinstall languages that are not installed
       opts.auto_install = true
       opts.highlight = {
         enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
         additional_vim_regex_highlighting = { 'ruby' },
       }
       opts.indent = { enable = true, disable = { 'ruby' } }
+      opts.textobjects = {
+        select = {
+          enable = true,
+          lookahead = true,
+          keymaps = {
+            ['af'] = { query = '@function.outer', desc = 'Select around function' },
+            ['if'] = { query = '@function.inner', desc = 'Select inside function' },
+            ['ac'] = { query = '@class.outer', desc = 'Select around class' },
+            ['ic'] = { query = '@class.inner', desc = 'Select inside class' },
+            ['aa'] = { query = '@parameter.outer', desc = 'Select around argument' },
+            ['ia'] = { query = '@parameter.inner', desc = 'Select inside argument' },
+            ['ai'] = { query = '@conditional.outer', desc = 'Select around conditional' },
+            ['ii'] = { query = '@conditional.inner', desc = 'Select inside conditional' },
+            ['al'] = { query = '@loop.outer', desc = 'Select around loop' },
+            ['il'] = { query = '@loop.inner', desc = 'Select inside loop' },
+          },
+        },
+        move = {
+          enable = true,
+          set_jumps = true,
+          goto_next_start = {
+            [']f'] = { query = '@function.outer', desc = 'Next function start' },
+            [']c'] = { query = '@class.outer', desc = 'Next class start' },
+            [']a'] = { query = '@parameter.inner', desc = 'Next argument' },
+          },
+          goto_next_end = {
+            [']F'] = { query = '@function.outer', desc = 'Next function end' },
+            [']C'] = { query = '@class.outer', desc = 'Next class end' },
+          },
+          goto_previous_start = {
+            ['[f'] = { query = '@function.outer', desc = 'Previous function start' },
+            ['[c'] = { query = '@class.outer', desc = 'Previous class start' },
+            ['[a'] = { query = '@parameter.inner', desc = 'Previous argument' },
+          },
+          goto_previous_end = {
+            ['[F'] = { query = '@function.outer', desc = 'Previous function end' },
+            ['[C'] = { query = '@class.outer', desc = 'Previous class end' },
+          },
+        },
+        swap = {
+          enable = true,
+          swap_next = {
+            ['<leader>csa'] = { query = '@parameter.inner', desc = 'Swap with next argument' },
+          },
+          swap_previous = {
+            ['<leader>csA'] = { query = '@parameter.inner', desc = 'Swap with previous argument' },
+          },
+        },
+      }
     end,
     config = function(_, opts)
-      -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
       local parser_config = require('nvim-treesitter.parsers').get_parser_configs()
 
       parser_config.blade = {
@@ -45,17 +92,9 @@ return {
         },
       }
 
-      -- Prefer git instead of curl in order to improve connectivity in some environments
       require('nvim-treesitter.install').prefer_git = true
       ---@diagnostic disable-next-line: missing-fields
       require('nvim-treesitter.configs').setup(opts)
-
-      -- There are additional nvim-treesitter modules that you can use to interact
-      -- with nvim-treesitter. You should go explore a few and see what interests you:
-      --
-      --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-      --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-      --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     end,
   },
 }

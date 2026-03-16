@@ -45,7 +45,7 @@ return {
     require('gitsigns').setup(opts)
     
     -- Enhanced git keymaps (replaces git-blame functionality)
-    vim.keymap.set('n', '<leader>gb', '<cmd>Gitsigns toggle_current_line_blame<cr>', { desc = '[G]it [B]lame toggle' })
+    vim.keymap.set('n', '<leader>gbt', '<cmd>Gitsigns toggle_current_line_blame<cr>', { desc = '[G]it [B]lame [T]oggle' })
     vim.keymap.set('n', '<leader>gB', '<cmd>Gitsigns blame_line{full=true}<cr>', { desc = '[G]it [B]lame full' })
     vim.keymap.set('n', '<leader>hd', '<cmd>Gitsigns diffthis<cr>', { desc = 'Git [H]unk [D]iff' })
     vim.keymap.set('n', '<leader>hD', function() require('gitsigns').diffthis('~') end, { desc = 'Git [H]unk [D]iff against HEAD' })

@@ -3,21 +3,30 @@ return {
   dependencies = {
     'nvim-neotest/nvim-nio',
     'nvim-lua/plenary.nvim',
-    -- 'antoinemadec/FixCursorHold.nvim', -- Removed: not needed on Neovim 0.9+
     'nvim-treesitter/nvim-treesitter',
+    'nvim-neotest/neotest-jest',
+    'olimorris/neotest-phpunit',
   },
 
-  setup = function(_, opts)
-    opts.adapters = {
-      require 'neotest-jest' {
-        jestCommand = 'npm test --',
-        env = { CI = true },
-        cwd = function(path)
-          return vim.fn.getcwd()
-        end,
+  config = function()
+    require('neotest').setup {
+      adapters = {
+        require('neotest-jest') {
+          jestCommand = 'npm test --',
+          env = { CI = true },
+          cwd = function()
+            return vim.fn.getcwd()
+          end,
+        },
+        require 'neotest-phpunit',
       },
     }
-
-    require('neotest').setup(opts)
   end,
+
+  keys = {
+    { '<leader>Tt', function() require('neotest').run.run() end, desc = 'Run Nearest Test' },
+    { '<leader>Tf', function() require('neotest').run.run(vim.fn.expand('%')) end, desc = 'Run Test File' },
+    { '<leader>Ts', function() require('neotest').summary.toggle() end, desc = 'Toggle Test Summary' },
+    { '<leader>To', function() require('neotest').output.open({ enter = true }) end, desc = 'Test Output' },
+  },
 }

@@ -1,6 +1,14 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Font configuration (unified with Zed: JetBrains Mono)
+-- For GUI Neovim (Neovide, GUNeovim, etc.)
+if vim.fn.exists('g:neovide') == 1 then
+  vim.g.neovide_font_name = 'JetBrains Mono:h13'
+elseif vim.fn.exists('g:goneovim') == 1 then
+  vim.opt.guifont = 'JetBrains Mono:h13'
+end
+
 vim.g.have_nerd_font = true
 vim.opt.termguicolors = true
 vim.opt.number = true
@@ -76,14 +84,6 @@ vim.opt.cursorlineopt = 'number'
 vim.opt.scrolloff = 10
 
 -- Enhanced built-in features configuration
-
--- Better netrw configuration (replaces file tree plugins for simple use)
-vim.g.netrw_banner = 0 -- Disable banner
-vim.g.netrw_liststyle = 3 -- Tree view
-vim.g.netrw_browse_split = 0 -- Open files in same window
-vim.g.netrw_altv = 1 -- Open splits to the right
-vim.g.netrw_winsize = 25 -- Set width to 25%
-vim.g.netrw_keepdir = 0 -- Keep current directory and browsing directory synced
 
 -- Enhanced command-line completion
 vim.opt.wildmenu = true

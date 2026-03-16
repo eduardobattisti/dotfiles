@@ -1,14 +1,10 @@
-return { -- Autocompletion
+return {
   'hrsh7th/nvim-cmp',
   event = 'InsertEnter',
   dependencies = {
-    -- Snippet Engine & its associated nvim-cmp source
     {
       'L3MON4D3/LuaSnip',
       build = (function()
-        -- Build Step is needed for regex support in snippets.
-        -- This step is not supported in many windows environments.
-        -- Remove the below condition to re-enable on windows.
         if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
           return
         end
@@ -26,57 +22,119 @@ return { -- Autocompletion
     'saadparwaiz1/cmp_luasnip',
     'hrsh7th/cmp-nvim-lsp',
     'hrsh7th/cmp-path',
-    -- 'github/copilot.vim',
+    'hrsh7th/cmp-buffer',
+    'hrsh7th/cmp-cmdline',
   },
   config = function()
-    -- See `:help cmp`
     local cmp = require 'cmp'
     local luasnip = require 'luasnip'
     luasnip.config.setup {}
 
+    local has_words_before = function()
+      unpack = unpack or table.unpack
+      local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+      return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match '%s' == nil
+    end
+
+    local kind_icons = {
+      Text = '󰉿',
+      Method = '󰆧',
+      Function = '󰊕',
+      Constructor = '',
+      Field = '󰜢',
+      Variable = '󰀫',
+      Class = '󰠱',
+      Interface = '',
+      Module = '',
+      Property = '󰜢',
+      Unit = '󰑭',
+      Value = '󰎠',
+      Enum = '',
+      Keyword = '󰌋',
+      Snippet = '',
+      Color = '󰏆',
+      File = '󰈙',
+      Reference = '󰈇',
+      Folder = '󰉋',
+      EnumMember = '',
+      Constant = '󰏿',
+      Struct = '󰙅',
+      Event = '',
+      Operator = '󰆕',
+      TypeParameter = '',
+      Copilot = '',
+    }
+
     cmp.setup {
+      enabled = function()
+        local context = require 'cmp.config.context'
+        if vim.api.nvim_get_mode().mode == 'c' then
+          return true
+        else
+          return not context.in_treesitter_capture 'comment' and not context.in_syntax_group 'Comment'
+        end
+      end,
+      performance = {
+        debounce = 60,
+        throttle = 30,
+        fetching_timeout = 500,
+        max_view_entries = 50,
+      },
       snippet = {
         expand = function(args)
           luasnip.lsp_expand(args.body)
         end,
       },
-      completion = { completeopt = 'menu,menuone,noinsert' },
+      completion = {
+        completeopt = 'menu,menuone,noinsert',
+      },
       window = {
         completion = cmp.config.window.bordered(),
         documentation = cmp.config.window.bordered(),
       },
-      -- For an understanding of why these mappings were
-      -- chosen, you will need to read `:help ins-completion`
-      --
-      -- No, but seriously. Please read `:help ins-completion`, it is really good!
+      formatting = {
+        fields = { 'kind', 'abbr', 'menu' },
+        format = function(entry, vim_item)
+          vim_item.kind = string.format('%s %s', kind_icons[vim_item.kind] or '', vim_item.kind)
+          vim_item.menu = ({
+            nvim_lsp = '[LSP]',
+            copilot = '[AI]',
+            luasnip = '[Snip]',
+            buffer = '[Buf]',
+            path = '[Path]',
+            cmdline = '[Cmd]',
+          })[entry.source.name]
+          return vim_item
+        end,
+      },
       mapping = cmp.mapping.preset.insert {
-        -- Select the [n]ext item
-        ['<Tab>'] = cmp.mapping.select_next_item(),
-        -- Select the [p]revious item
-        ['<S-Tab>'] = cmp.mapping.select_prev_item(),
-
-        -- Scroll the documentation window [b]ack / [f]orward
+        ['<C-n>'] = cmp.mapping.select_next_item(),
+        ['<C-p>'] = cmp.mapping.select_prev_item(),
         ['<C-u>'] = cmp.mapping.scroll_docs(-4),
         ['<C-d>'] = cmp.mapping.scroll_docs(4),
-
-        -- Accept ([y]es) the completion.
-        --  This will auto-import if your LSP supports it.
-        --  This will expand snippets if the LSP sent a snippet.
-        ['<CR>'] = cmp.mapping.confirm { select = true },
-
-        -- Manually trigger a completion from nvim-cmp.
-        --  Generally you don't need this, because nvim-cmp will display
-        --  completions whenever it has completion options available.
         ['<C-Space>'] = cmp.mapping.complete {},
-
-        -- Think of <c-l> as moving to the right of your snippet expansion.
-        --  So if you have a snippet that's like:
-        --  function $name($args)
-        --    $body
-        --  end
-        --
-        -- <c-l> will move you to the right of each of the expansion locations.
-        -- <c-h> is similar, except moving you backwards.
+        ['<C-e>'] = cmp.mapping.abort(),
+        ['<CR>'] = cmp.mapping.confirm { select = true },
+        ['<Tab>'] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_next_item()
+          elseif luasnip.expand_or_locally_jumpable() then
+            luasnip.expand_or_jump()
+          elseif has_words_before() then
+            cmp.complete()
+          else
+            fallback()
+          end
+        end, { 'i', 's' }),
+        ['<S-Tab>'] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_prev_item()
+          elseif luasnip.locally_jumpable(-1) then
+            luasnip.jump(-1)
+          else
+            fallback()
+          end
+        end, { 'i', 's' }),
         ['<C-l>'] = cmp.mapping(function()
           if luasnip.expand_or_locally_jumpable() then
             luasnip.expand_or_jump()
@@ -87,18 +145,64 @@ return { -- Autocompletion
             luasnip.jump(-1)
           end
         end, { 'i', 's' }),
-
-        -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-        --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
       },
-      sources = {
-        { name = 'nvim_lsp' },
-        { name = 'nvim_lsp_signature_help' },
-        { name = 'luasnip' },
-        -- { name = 'copilot' },
-        { name = 'buffer' },
-        { name = 'path' },
+      sources = cmp.config.sources({
+        { name = 'nvim_lsp', priority = 1000 },
+        { name = 'copilot', priority = 900 },
+        { name = 'luasnip', priority = 750 },
+      }, {
+        { name = 'path', priority = 500 },
+        { name = 'buffer', priority = 250, keyword_length = 3 },
+      }),
+      sorting = {
+        priority_weight = 2,
+        comparators = {
+          cmp.config.compare.offset,
+          cmp.config.compare.exact,
+          cmp.config.compare.score,
+          cmp.config.compare.recently_used,
+          cmp.config.compare.locality,
+          cmp.config.compare.kind,
+          cmp.config.compare.sort_text,
+          cmp.config.compare.length,
+          cmp.config.compare.order,
+        },
+      },
+      experimental = {
+        ghost_text = {
+          hl_group = 'CmpGhostText',
+        },
       },
     }
+
+    cmp.setup.cmdline({ '/', '?' }, {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = {
+        { name = 'buffer' },
+      },
+    })
+
+    cmp.setup.cmdline(':', {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = cmp.config.sources({
+        { name = 'path' },
+      }, {
+        { name = 'cmdline' },
+      }),
+    })
+
+    vim.api.nvim_set_hl(0, 'CmpGhostText', { link = 'Comment', default = true })
+    vim.api.nvim_set_hl(0, 'CmpItemAbbrDeprecated', { fg = '#7E8E91', strikethrough = true })
+    vim.api.nvim_set_hl(0, 'CmpItemAbbrMatch', { fg = '#569CD6', bold = true })
+    vim.api.nvim_set_hl(0, 'CmpItemAbbrMatchFuzzy', { fg = '#569CD6' })
+    vim.api.nvim_set_hl(0, 'CmpItemKindVariable', { fg = '#9CDCFE' })
+    vim.api.nvim_set_hl(0, 'CmpItemKindInterface', { fg = '#9CDCFE' })
+    vim.api.nvim_set_hl(0, 'CmpItemKindText', { fg = '#9CDCFE' })
+    vim.api.nvim_set_hl(0, 'CmpItemKindFunction', { fg = '#C586C0' })
+    vim.api.nvim_set_hl(0, 'CmpItemKindMethod', { fg = '#C586C0' })
+    vim.api.nvim_set_hl(0, 'CmpItemKindKeyword', { fg = '#D4D4D4' })
+    vim.api.nvim_set_hl(0, 'CmpItemKindProperty', { fg = '#D4D4D4' })
+    vim.api.nvim_set_hl(0, 'CmpItemKindUnit', { fg = '#D4D4D4' })
+    vim.api.nvim_set_hl(0, 'CmpItemKindCopilot', { link = 'Special' })
   end,
 }

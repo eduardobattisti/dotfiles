@@ -174,18 +174,23 @@ return {
     -- TERMINAL
     -- ========================================================================
     {
-      '<leader>ft',
+      '<leader>tf',
       function()
         Snacks.terminal()
       end,
-      desc = 'Terminal (Root Dir)',
+      desc = 'Terminal (Floating)',
     },
     {
-      '<leader>fT',
+      '<leader>tb',
       function()
-        Snacks.terminal(nil, { cwd = vim.fn.getcwd() })
+        Snacks.terminal(nil, {
+          win = {
+            position = 'bottom',
+            height = 0.3,
+          },
+        })
       end,
-      desc = 'Terminal (cwd)',
+      desc = 'Terminal (Bottom Panel)',
     },
     {
       '<c-/>',
@@ -196,7 +201,7 @@ return {
       mode = { 'n', 't' },
     },
     {
-      '<c-_>', -- For terminals that send <C-_> instead of <C-/>
+      '<c-_>',
       function()
         Snacks.terminal()
       end,

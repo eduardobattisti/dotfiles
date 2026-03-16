@@ -7,9 +7,8 @@ return {
     'WhoIsSethDaniel/mason-tool-installer.nvim',
     { 'j-hui/fidget.nvim', opts = {} },
 
-    -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
-    -- used for completion, annotations and signatures of Neovim apis
-    { 'folke/neodev.nvim', opts = {} },
+    -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
+    { 'folke/lazydev.nvim', ft = 'lua', opts = {} },
   },
 
   config = function()
@@ -114,13 +113,14 @@ return {
     -- You can add other tools here that you want Mason to install
     -- for you, so that they are available from within Neovim.
     local ensure_installed = {
-      -- 'phpcs',
       'markdownlint',
       'php-debug-adapter',
+      'prettierd',
       'stylua',
       'cssls',
       'css_variables',
       'html',
+      'emmet_ls',
       'intelephense',
       'vue_ls',
       'vtsls',
@@ -151,6 +151,7 @@ return {
       ensure_installed = {
         'cssls',
         'css_variables',
+        'emmet_ls',
         'html',
         'intelephense',
         'vue_ls',
@@ -181,6 +182,10 @@ return {
     vim.lsp.config('cssls', default_config)
 
     vim.lsp.config('css_variables', default_config)
+
+    vim.lsp.config('emmet_ls', vim.tbl_deep_extend('force', default_config, {
+      filetypes = { 'html', 'css', 'scss', 'javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'vue', 'blade' },
+    }))
 
     vim.lsp.config('tailwindcss', {
       capabilities = require('config.lsp.servers.tailwindcss').capabilities,
