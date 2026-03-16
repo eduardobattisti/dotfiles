@@ -94,17 +94,17 @@ local RENDER_VARIANTS = {
 ---@type table<string, Cells.SegmentColors>
 -- stylua: ignore
 local colors = {
-   text_default          = { bg = '#232136', fg = '#E0DEF4' },
-   text_hover            = { bg = '#5D87A3', fg = '#E0DEF4' },
-   text_active           = { bg = '#74c7ec', fg = '#11111B' },
+   text_default          = { bg = '#2b3339', fg = '#d3c6aa' },
+   text_hover            = { bg = '#475258', fg = '#d3c6aa' },
+   text_active           = { bg = '#7fbbb3', fg = '#2b3339' },
 
-   unseen_output_default = { bg = '#45475A', fg = '#FFA066' },
-   unseen_output_hover   = { bg = '#5D87A3', fg = '#FFA066' },
-   unseen_output_active  = { bg = '#74c7ec', fg = '#FFA066' },
+   unseen_output_default = { bg = '#3c474d', fg = '#e69875' },
+   unseen_output_hover   = { bg = '#475258', fg = '#e69875' },
+   unseen_output_active  = { bg = '#7fbbb3', fg = '#e69875' },
 
-   scircle_default       = { bg = 'rgba(0, 0, 0, 0.4)', fg = '#45475A' },
-   scircle_hover         = { bg = 'rgba(0, 0, 0, 0.4)', fg = '#5D87A3' },
-   scircle_active        = { bg = 'rgba(0, 0, 0, 0.4)', fg = '#74C7EC' },
+   scircle_default       = { bg = 'rgba(0, 0, 0, 0.4)', fg = '#3c474d' },
+   scircle_hover         = { bg = 'rgba(0, 0, 0, 0.4)', fg = '#475258' },
+   scircle_active        = { bg = 'rgba(0, 0, 0, 0.4)', fg = '#7fbbb3' },
 }
 
 ---
@@ -353,6 +353,17 @@ M.setup = function(opts)
 
    -- BUILTIN EVENT
    wezterm.on('format-tab-title', function(tab, _tabs, _panes, _config, hover, max_width)
+      -- Prune tab_list entries for tabs that no longer exist
+      local active_tab_ids = {}
+      for _, t in ipairs(_tabs) do
+         active_tab_ids[t.tab_id] = true
+      end
+      for id in pairs(tab_list) do
+         if not active_tab_ids[id] then
+            tab_list[id] = nil
+         end
+      end
+
       if not tab_list[tab.tab_id] then
          tab_list[tab.tab_id] = Tab:new()
          tab_list[tab.tab_id]:set_info(valid_opts, tab, max_width)

@@ -1,5 +1,6 @@
 local wezterm = require("wezterm")
 local theme = require("utils.theme")
+local platform = require("utils.platform")
 local colors = theme.colors
 
 local Tab = {}
@@ -119,30 +120,17 @@ local function get_process(tab)
 end
 
 local function get_current_working_dir(tab)
-	-- CWD comming from windows
-	local cwd_uri = tab.active_pane.current_working_dir
+	local cwd = platform.parse_cwd_uri(tab.active_pane.current_working_dir)
 
-	if cwd_uri then
-		local cwd = ""
-		if type(cwd_uri) == "userdata" then
-			-- Error happens here
-			cwd = cwd_uri.file_path
-		else
-			cwd_uri = cwd_uri:sub(8)
-			local slash = cwd_uri:find("/")
-			if slash then
-				cwd = cwd_uri:sub(slash):gsub("%%(%x%x)", function(hex)
-					return string.char(tonumber(hex, 16))
-				end)
-			end
-		end
-
-		if cwd == os.getenv("HOME") then
-			return "~"
-		end
-
-		return string.format("%s", string.match(cwd, "[^/]+$"))
+	if not cwd then
+		return nil
 	end
+
+	if cwd == os.getenv("HOME") then
+		return "~"
+	end
+
+	return string.format("%s", string.match(cwd, "[^/]+$"))
 end
 
 function Tab.setup(config)

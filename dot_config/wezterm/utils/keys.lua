@@ -6,437 +6,450 @@ local Keys = {}
 
 -- Logging utilities
 local function log_error(msg, err)
-    wezterm.log_error("[Keys] " .. msg .. ": " .. tostring(err))
+	wezterm.log_error("[Keys] " .. msg .. ": " .. tostring(err))
 end
 
 local function safe_call(fn, fallback)
-    local success, result = pcall(fn)
-    if not success then
-        return fallback
-    end
-    return result
+	local success, result = pcall(fn)
+	if not success then
+		return fallback
+	end
+	return result
 end
 
 -- Smart pane navigation that works with vim/nvim
 local function is_vim(pane)
-    -- Check if the current pane is running vim/nvim
-    local process_name = safe_call(function()
-        return string.gsub(pane:get_foreground_process_name(), "(.*[/\\])(.*)", "%2")
-    end, "")
-    return process_name == 'nvim' or process_name == 'vim'
+	-- Check if the current pane is running vim/nvim
+	local process_name = safe_call(function()
+		return string.gsub(pane:get_foreground_process_name(), "(.*[/\\])(.*)", "%2")
+	end, "")
+	return process_name == "nvim" or process_name == "vim"
 end
 
 -- Check if vim is in insert mode
 local function is_in_vim_insert_mode(pane)
-    local title = safe_call(function()
-        return pane:get_title()
-    end, "")
-    return title:find("INSERT") ~= nil or title:find("REPLACE") ~= nil
+	local title = safe_call(function()
+		return pane:get_title()
+	end, "")
+	return title:find("INSERT") ~= nil or title:find("REPLACE") ~= nil
 end
 
 -- Create smart navigation function
 local function navigate_pane_or_vim_split(key, direction)
-    return wezterm.action_callback(function(window, pane)
-        if is_vim(pane) then
-            -- Send the key to vim/nvim
-            window:perform_action({
-                SendKey = { key = key, mods = 'CTRL' }
-            }, pane)
-        else
-            -- Navigate wezterm panes
-            window:perform_action({ ActivatePaneDirection = direction }, pane)
-        end
-    end)
+	return wezterm.action_callback(function(window, pane)
+		if is_vim(pane) then
+			-- Send the key to vim/nvim
+			window:perform_action({
+				SendKey = { key = key, mods = "CTRL" },
+			}, pane)
+		else
+			-- Navigate wezterm panes
+			window:perform_action({ ActivatePaneDirection = direction }, pane)
+		end
+	end)
 end
 
 -- Create smart scrolling function for Ctrl+U and Ctrl+D (improved)
 local function smart_scroll(key, scroll_action)
-    return wezterm.action_callback(function(window, pane)
-        if is_vim(pane) and not is_in_vim_insert_mode(pane) then
-            -- Send the key to vim/nvim only in normal mode
-            window:perform_action({
-                SendKey = { key = key, mods = 'CTRL' }
-            }, pane)
-        else
-            -- Use WezTerm's scroll action
-            window:perform_action(scroll_action, pane)
-        end
-    end)
+	return wezterm.action_callback(function(window, pane)
+		if is_vim(pane) and not is_in_vim_insert_mode(pane) then
+			-- Send the key to vim/nvim only in normal mode
+			window:perform_action({
+				SendKey = { key = key, mods = "CTRL" },
+			}, pane)
+		else
+			-- Use WezTerm's scroll action
+			window:perform_action(scroll_action, pane)
+		end
+	end)
 end
 
 -- Quick directory navigation
 local function quick_select_directory()
-    return act.QuickSelectArgs({
-        label = 'open directory',
-        patterns = { [[(?:~|\.{1,2})?/[^\s]+]] },
-        action = wezterm.action_callback(function(window, pane)
-            local url = window:get_selection_text_for_pane(pane)
-            if url then
-                window:perform_action(
-                    act.SpawnCommandInNewTab({ args = { 'cd', url } }),
-                    pane
-                )
-            end
-        end),
-    })
+	return act.QuickSelectArgs({
+		label = "open directory",
+		patterns = { [[(?:~|\.{1,2})?/[^\s]+]] },
+		action = wezterm.action_callback(function(window, pane)
+			local url = window:get_selection_text_for_pane(pane)
+			if url then
+				window:perform_action(act.SpawnCommandInNewTab({ args = { "cd", url } }), pane)
+			end
+		end),
+	})
 end
 
 -- Smart tab switching with workspace awareness
 local function smart_tab_switch(direction)
-    return wezterm.action_callback(function(window, pane)
-        local tabs = window:mux_window():tabs()
-        local current_idx = window:active_tab():tab_id()
-        
-        -- Find current tab index
-        local current_pos = 1
-        for i, tab in ipairs(tabs) do
-            if tab:tab_id() == current_idx then
-                current_pos = i
-                break
-            end
-        end
-        
-        local new_pos
-        if direction > 0 then
-            new_pos = current_pos % #tabs + 1
-        else
-            new_pos = current_pos == 1 and #tabs or current_pos - 1
-        end
-        
-        window:perform_action(act.ActivateTab(new_pos - 1), pane)
-    end)
+	return wezterm.action_callback(function(window, pane)
+		local tabs = window:mux_window():tabs()
+		local current_idx = window:active_tab():tab_id()
+
+		-- Find current tab index
+		local current_pos = 1
+		for i, tab in ipairs(tabs) do
+			if tab:tab_id() == current_idx then
+				current_pos = i
+				break
+			end
+		end
+
+		local new_pos
+		if direction > 0 then
+			new_pos = current_pos % #tabs + 1
+		else
+			new_pos = current_pos == 1 and #tabs or current_pos - 1
+		end
+
+		window:perform_action(act.ActivateTab(new_pos - 1), pane)
+	end)
 end
 
 -- Workspace switcher with fuzzy matching
 local function workspace_switcher()
-    return wezterm.action_callback(function(window, pane)
-        local workspaces = {}
-        for _, workspace in ipairs(wezterm.mux.get_workspace_names()) do
-            table.insert(workspaces, {
-                id = workspace,
-                label = workspace,
-            })
-        end
-        
-        window:perform_action(
-            act.InputSelector({
-                action = wezterm.action_callback(function(inner_window, inner_pane, id, label)
-                    if not id and not label then
-                        return
-                    end
-                    inner_window:perform_action(
-                        act.SwitchToWorkspace({ name = id }),
-                        inner_pane
-                    )
-                end),
-                title = 'Select Workspace',
-                choices = workspaces,
-                fuzzy = true,
-            }),
-            pane
-        )
-    end)
+	return wezterm.action_callback(function(window, pane)
+		local workspaces = {}
+		for _, workspace in ipairs(wezterm.mux.get_workspace_names()) do
+			table.insert(workspaces, {
+				id = workspace,
+				label = workspace,
+			})
+		end
+
+		window:perform_action(
+			act.InputSelector({
+				action = wezterm.action_callback(function(inner_window, inner_pane, id, label)
+					if not id and not label then
+						return
+					end
+					inner_window:perform_action(act.SwitchToWorkspace({ name = id }), inner_pane)
+				end),
+				title = "Select Workspace",
+				choices = workspaces,
+				fuzzy = true,
+			}),
+			pane
+		)
+	end)
 end
 
 -- Project launcher (platform-aware)
 local function project_launcher()
-    return wezterm.action_callback(function(window, pane)
-        local home = platform.get_home_dir()
-        local projects = {}
-        
-        -- Platform-specific default directories
-        if platform.is_windows then
-            table.insert(projects, { id = home .. "\\Documents", label = "~/Documents" })
-            table.insert(projects, { id = home .. "\\Downloads", label = "~/Downloads" })
-            table.insert(projects, { id = home .. "\\Desktop", label = "~/Desktop" })
-        else
-            table.insert(projects, { id = home .. "/projects", label = "~/projects" })
-            table.insert(projects, { id = home .. "/.config", label = "~/.config" })
-            table.insert(projects, { id = home .. "/Documents", label = "~/Documents" })
-            table.insert(projects, { id = home .. "/Downloads", label = "~/Downloads" })
-            table.insert(projects, { id = "/tmp", label = "/tmp" })
-        end
-        
-        -- Add git repositories if available (platform-aware)
-        safe_call(function()
-            local cmd
-            if platform.is_windows then
-                cmd = 'dir /s /b /ad "' .. home .. '\\.git" 2>nul | findstr /v "node_modules" | findstr /v "vendor"'
-            else
-                cmd = "find " .. home .. " -name '.git' -type d 2>/dev/null | head -20"
-            end
-            
-            local handle = io.popen(cmd)
-            if handle then
-                for line in handle:lines() do
-                    local project_dir = line:gsub("[\\/].git$", ""):gsub("[\\/].git[\\/].*$", "")
-                    local project_name = project_dir:match("([^\\/]+)$")
-                    if project_name and project_name ~= "" then
-                        table.insert(projects, {
-                            id = project_dir,
-                            label = "📁 " .. project_name .. " (" .. project_dir .. ")"
-                        })
-                    end
-                end
-                handle:close()
-            end
-        end)
-        
-        window:perform_action(
-            act.InputSelector({
-                action = wezterm.action_callback(function(inner_window, inner_pane, id, label)
-                    if not id then
-                        return
-                    end
-                    local shell_cmd
-                    if platform.is_windows then
-                        shell_cmd = { "powershell.exe", "-NoLogo", "-NoExit", "-Command", "cd '" .. id .. "'" }
-                    else
-                        local shell = os.getenv("SHELL") or "zsh"
-                        shell_cmd = { shell, "-c", "cd '" .. id .. "' && exec " .. shell }
-                    end
-                    
-                    inner_window:perform_action(
-                        act.SpawnCommandInNewTab({ args = shell_cmd }),
-                        inner_pane
-                    )
-                end),
-                title = 'Select Project Directory',
-                choices = projects,
-                fuzzy = true,
-            }),
-            pane
-        )
-    end)
+	return wezterm.action_callback(function(window, pane)
+		local home = platform.get_home_dir()
+		local projects = {}
+
+		-- Platform-specific default directories
+		if platform.is_windows then
+			table.insert(projects, { id = home .. "\\Documents", label = "~/Documents" })
+			table.insert(projects, { id = home .. "\\Downloads", label = "~/Downloads" })
+			table.insert(projects, { id = home .. "\\Desktop", label = "~/Desktop" })
+		else
+			table.insert(projects, { id = home .. "/projects", label = "~/projects" })
+			table.insert(projects, { id = home .. "/.config", label = "~/.config" })
+			table.insert(projects, { id = home .. "/Documents", label = "~/Documents" })
+			table.insert(projects, { id = home .. "/Downloads", label = "~/Downloads" })
+			table.insert(projects, { id = "/tmp", label = "/tmp" })
+		end
+
+		-- Add git repositories if available (platform-aware)
+		safe_call(function()
+			local cmd
+			if platform.is_windows then
+				cmd = 'dir /s /b /ad "' .. home .. '\\.git" 2>nul | findstr /v "node_modules" | findstr /v "vendor"'
+			else
+				cmd = "find " .. home .. " -name '.git' -type d 2>/dev/null | head -20"
+			end
+
+			local handle = io.popen(cmd)
+			if handle then
+				for line in handle:lines() do
+					local project_dir = line:gsub("[\\/].git$", ""):gsub("[\\/].git[\\/].*$", "")
+					local project_name = project_dir:match("([^\\/]+)$")
+					if project_name and project_name ~= "" then
+						table.insert(projects, {
+							id = project_dir,
+							label = "📁 " .. project_name .. " (" .. project_dir .. ")",
+						})
+					end
+				end
+				handle:close()
+			end
+		end)
+
+		window:perform_action(
+			act.InputSelector({
+				action = wezterm.action_callback(function(inner_window, inner_pane, id, label)
+					if not id then
+						return
+					end
+					local shell_cmd
+					if platform.is_windows then
+						shell_cmd = { "powershell.exe", "-NoLogo", "-NoExit", "-Command", "cd '" .. id .. "'" }
+					else
+						local shell = os.getenv("SHELL") or "zsh"
+						shell_cmd = { shell, "-c", "cd '" .. id .. "' && exec " .. shell }
+					end
+
+					inner_window:perform_action(act.SpawnCommandInNewTab({ args = shell_cmd }), inner_pane)
+				end),
+				title = "Select Project Directory",
+				choices = projects,
+				fuzzy = true,
+			}),
+			pane
+		)
+	end)
 end
 
 -- Enhanced copy mode with better defaults
 local function enter_copy_mode()
-    return act.Multiple({
-        act.CopyMode('MoveToStartOfLine'),
-        act.CopyMode('MoveToSelectionOtherEnd'),
-    })
+	return act.Multiple({
+		act.CopyMode("MoveToStartOfLine"),
+		act.CopyMode("MoveToSelectionOtherEnd"),
+	})
 end
 
 -- Quick command runner (platform-aware)
 local function quick_command()
-    return act.PromptInputLine({
-        description = 'Run command:',
-        action = wezterm.action_callback(function(window, pane, line)
-            if line then
-                local cmd
-                if platform.is_windows then
-                    cmd = { "powershell.exe", "-NoLogo", "-Command", line }
-                else
-                    local shell = os.getenv("SHELL") or "sh"
-                    cmd = { shell, "-c", line }
-                end
-                
-                window:perform_action(
-                    act.SpawnCommandInNewTab({ args = cmd }),
-                    pane
-                )
-            end
-        end),
-    })
+	return act.PromptInputLine({
+		description = "Run command:",
+		action = wezterm.action_callback(function(window, pane, line)
+			if line then
+				local cmd
+				if platform.is_windows then
+					cmd = { "powershell.exe", "-NoLogo", "-Command", line }
+				else
+					local shell = os.getenv("SHELL") or "sh"
+					cmd = { shell, "-c", line }
+				end
+
+				window:perform_action(act.SpawnCommandInNewTab({ args = cmd }), pane)
+			end
+		end),
+	})
 end
 
 -- Session management with names
 local function named_session_save()
-    return act.PromptInputLine({
-        description = 'Session name:',
-        action = wezterm.action_callback(function(window, pane, line)
-            if line then
-                -- Save with custom name
-                wezterm.emit('save_session', window, line)
-            end
-        end),
-    })
+	return act.PromptInputLine({
+		description = "Session name:",
+		action = wezterm.action_callback(function(window, pane, line)
+			if line then
+				-- Save with custom name
+				wezterm.emit("save_session", window, line)
+			end
+		end),
+	})
 end
 
 -- Multi-pane layouts
 local function create_layout(layout_type)
-    return wezterm.action_callback(function(window, pane)
-        local tab = window:active_tab()
-        
-        if layout_type == "ide" then
-            -- Create IDE-like layout: main + sidebar + bottom
-            tab:set_title("IDE Layout")
-            window:perform_action(act.SplitHorizontal({ domain = "CurrentPaneDomain" }), pane)
-            window:perform_action(act.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
-            -- Focus back to main pane
-            window:perform_action(act.ActivatePaneDirection("Left"), pane)
-        elseif layout_type == "terminal" then
-            -- Create terminal layout: main + bottom split
-            tab:set_title("Terminal Layout")
-            window:perform_action(act.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
-        elseif layout_type == "quad" then
-            -- Create quad layout: 2x2 grid
-            tab:set_title("Quad Layout")
-            window:perform_action(act.SplitHorizontal({ domain = "CurrentPaneDomain" }), pane)
-            window:perform_action(act.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
-            window:perform_action(act.ActivatePaneDirection("Left"), pane)
-            window:perform_action(act.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
-        end
-    end)
+	return wezterm.action_callback(function(window, pane)
+		local tab = window:active_tab()
+
+		if layout_type == "ide" then
+			-- Create IDE-like layout: main + sidebar + bottom
+			tab:set_title("IDE Layout")
+			window:perform_action(act.SplitHorizontal({ domain = "CurrentPaneDomain" }), pane)
+			window:perform_action(act.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
+			-- Focus back to main pane
+			window:perform_action(act.ActivatePaneDirection("Left"), pane)
+		elseif layout_type == "terminal" then
+			-- Create terminal layout: main + bottom split
+			tab:set_title("Terminal Layout")
+			window:perform_action(act.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
+		elseif layout_type == "quad" then
+			-- Create quad layout: 2x2 grid
+			tab:set_title("Quad Layout")
+			window:perform_action(act.SplitHorizontal({ domain = "CurrentPaneDomain" }), pane)
+			window:perform_action(act.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
+			window:perform_action(act.ActivatePaneDirection("Left"), pane)
+			window:perform_action(act.SplitVertical({ domain = "CurrentPaneDomain" }), pane)
+		end
+	end)
 end
 
 -- Export key binding configurations
 Keys.leader_key = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
 
 Keys.keys = {
-    -- System integration (lowercase keys for better compatibility)
-    { key = "v", mods = "CTRL|SHIFT", action = act.PasteFrom("Clipboard") },
-    { key = "c", mods = "CTRL|SHIFT", action = act.CopyTo("Clipboard") },
-    
-    -- Smart pane navigation (works with vim/nvim)
-    { key = "h", mods = "CTRL", action = navigate_pane_or_vim_split("h", "Left") },
-    { key = "l", mods = "CTRL", action = navigate_pane_or_vim_split("l", "Right") },
-    { key = "k", mods = "CTRL", action = navigate_pane_or_vim_split("k", "Up") },
-    { key = "j", mods = "CTRL", action = navigate_pane_or_vim_split("j", "Down") },
-    
-    -- Standard pane navigation fallback
-    { key = "LeftArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Left") },
-    { key = "RightArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Right") },
-    { key = "UpArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Up") },
-    { key = "DownArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Down") },
-    
-    -- Pane resizing
-    { key = "h", mods = "CTRL|SHIFT", action = act.AdjustPaneSize({ "Left", 3 }) },
-    { key = "l", mods = "CTRL|SHIFT", action = act.AdjustPaneSize({ "Right", 3 }) },
-    { key = "k", mods = "CTRL|SHIFT", action = act.AdjustPaneSize({ "Up", 3 }) },
-    { key = "j", mods = "CTRL|SHIFT", action = act.AdjustPaneSize({ "Down", 3 }) },
-    
-    -- Enhanced scrolling (context-aware for vim/nvim)
-    { key = "u", mods = "CTRL", action = smart_scroll("u", act.ScrollByPage(-0.5)) },
-    { key = "d", mods = "CTRL", action = smart_scroll("d", act.ScrollByPage(0.5)) },
-    { key = "k", mods = "CTRL|ALT", action = act.ScrollByLine(-3) },
-    { key = "j", mods = "CTRL|ALT", action = act.ScrollByLine(3) },
-    { key = "Home", mods = "CTRL", action = act.ScrollToTop },
-    { key = "End", mods = "CTRL", action = act.ScrollToBottom },
-    
-    -- Leader-based bindings
-    { key = "|", mods = "LEADER|SHIFT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
-    { key = "\\", mods = "LEADER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
-    { key = "-", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
-    { key = "_", mods = "LEADER|SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
-    
-    -- Pane management
-    { key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
-    { key = "x", mods = "LEADER", action = act.CloseCurrentPane({ confirm = true }) },
-    { key = "!", mods = "LEADER|SHIFT", action = act.PaneSelect({ mode = "SwapWithActive" }) },
-    { key = "q", mods = "LEADER", action = act.PaneSelect },
-    
-    -- Tab management
-    { key = "c", mods = "LEADER", action = act.SpawnTab("CurrentPaneDomain") },
-    { key = "n", mods = "LEADER", action = smart_tab_switch(1) },
-    { key = "p", mods = "LEADER", action = smart_tab_switch(-1) },
-    { key = "&", mods = "LEADER|SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
-    
-    -- Enhanced tab navigation
-    { key = "Tab", mods = "CTRL", action = act.ActivateTabRelative(1) },
-    { key = "Tab", mods = "CTRL|SHIFT", action = act.ActivateTabRelative(-1) },
-    { key = "[", mods = "LEADER", action = act.ActivateTabRelative(-1) },
-    { key = "]", mods = "LEADER", action = act.ActivateTabRelative(1) },
-    
-    -- Workspace management
-    { key = "w", mods = "LEADER", action = workspace_switcher() },
-    { key = "W", mods = "LEADER|SHIFT", action = act.PromptInputLine({
-        description = "New workspace name:",
-        action = wezterm.action_callback(function(window, pane, line)
-            if line then
-                window:perform_action(act.SwitchToWorkspace({ name = line }), pane)
-            end
-        end),
-    })},
-    
-    -- Quick applications and tools (with error handling)
-    { key = "g", mods = "LEADER", action = wezterm.action_callback(function(window, pane)
-        safe_call(function()
-            window:perform_action(act.SpawnCommandInNewTab({ args = { "lazygit" } }), pane)
-        end)
-    end) },
-    { key = "f", mods = "LEADER", action = wezterm.action_callback(function(window, pane)
-        safe_call(function()
-            window:perform_action(act.SpawnCommandInNewTab({ args = { "ranger" } }), pane)
-        end)
-    end) },
-    { key = "m", mods = "LEADER", action = wezterm.action_callback(function(window, pane)
-        safe_call(function()
-            local cmd = platform.is_windows and { "btop" } or { "btop" }
-            window:perform_action(act.SpawnCommandInNewTab({ args = cmd }), pane)
-        end)
-    end) },
-    { key = "v", mods = "LEADER", action = wezterm.action_callback(function(window, pane)
-        safe_call(function()
-            window:perform_action(act.SpawnCommandInNewTab({ args = { "nvim" } }), pane)
-        end)
-    end) },
-    
-    -- Project and directory navigation
-    { key = "o", mods = "LEADER", action = project_launcher() },
-    { key = "D", mods = "LEADER|SHIFT", action = quick_select_directory() },
-    
-    -- Enhanced copy/search mode
-    { key = "Space", mods = "LEADER", action = enter_copy_mode() },
-    { key = "/", mods = "LEADER", action = act.Search({ CaseInSensitiveString = "" }) },
-    { key = "?", mods = "LEADER|SHIFT", action = act.Search({ CaseSensitiveString = "" }) },
-    
-    -- Session management
-    { key = "s", mods = "LEADER", action = named_session_save() },
-    { key = "S", mods = "LEADER|SHIFT", action = act.EmitEvent("save_session") },
-    { key = "r", mods = "LEADER", action = act.EmitEvent("restore_session") },
-    { key = "L", mods = "LEADER|SHIFT", action = act.EmitEvent("load_session") },
-    
-    -- Quick layouts
-    { key = "1", mods = "LEADER|ALT", action = create_layout("ide") },
-    { key = "2", mods = "LEADER|ALT", action = create_layout("terminal") },
-    { key = "3", mods = "LEADER|ALT", action = create_layout("quad") },
-    
-    -- Command and launcher
-    { key = ":", mods = "LEADER", action = quick_command() },
-    { key = "l", mods = "LEADER", action = act.ShowLauncher },
-    { key = "P", mods = "LEADER|SHIFT", action = act.ActivateCommandPalette },
-    
-    -- Font and UI
-    { key = "=", mods = "CTRL", action = act.IncreaseFontSize },
-    { key = "-", mods = "CTRL", action = act.DecreaseFontSize },
-    { key = "0", mods = "CTRL", action = act.ResetFontSize },
-    { key = "F11", mods = "NONE", action = act.ToggleFullScreen },
-    
-    -- Tab renaming and management
-    { key = "e", mods = "LEADER", action = act.PromptInputLine({
-        description = "Tab name:",
-        action = wezterm.action_callback(function(window, pane, line)
-            if line then
-                window:active_tab():set_title(line)
-            end
-        end),
-    })},
-    
-    -- Debug and configuration
-    { key = "F5", mods = "NONE", action = act.ReloadConfiguration },
-    { key = "F12", mods = "NONE", action = act.ShowDebugOverlay },
-    
-    -- Leader key passthrough
-    { key = "a", mods = "LEADER|CTRL", action = act.SendKey({ key = "a", mods = "CTRL" }) },
-    
-    -- Window management
-    { key = "N", mods = "CTRL|SHIFT", action = act.SpawnWindow },
+	-- System integration (lowercase keys for better compatibility)
+	{ key = "v", mods = "CTRL|SHIFT", action = act.PasteFrom("Clipboard") },
+	{ key = "c", mods = "CTRL|SHIFT", action = act.CopyTo("Clipboard") },
+
+	-- Smart pane navigation (works with vim/nvim)
+	{ key = "h", mods = "CTRL", action = navigate_pane_or_vim_split("h", "Left") },
+	{ key = "l", mods = "CTRL", action = navigate_pane_or_vim_split("l", "Right") },
+	{ key = "k", mods = "CTRL", action = navigate_pane_or_vim_split("k", "Up") },
+	{ key = "j", mods = "CTRL", action = navigate_pane_or_vim_split("j", "Down") },
+
+	-- Standard pane navigation fallback
+	{ key = "LeftArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Left") },
+	{ key = "RightArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Right") },
+	{ key = "UpArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Up") },
+	{ key = "DownArrow", mods = "CTRL|SHIFT", action = act.ActivatePaneDirection("Down") },
+
+	-- Pane resizing
+	{ key = "h", mods = "CTRL|SHIFT", action = act.AdjustPaneSize({ "Left", 3 }) },
+	{ key = "l", mods = "CTRL|SHIFT", action = act.AdjustPaneSize({ "Right", 3 }) },
+	{ key = "k", mods = "CTRL|SHIFT", action = act.AdjustPaneSize({ "Up", 3 }) },
+	{ key = "j", mods = "CTRL|SHIFT", action = act.AdjustPaneSize({ "Down", 3 }) },
+
+	-- Enhanced scrolling (context-aware for vim/nvim)
+	-- { key = "u", mods = "CTRL", action = smart_scroll("u", act.ScrollByPage(-0.5)) },
+	-- { key = "d", mods = "CTRL", action = smart_scroll("d", act.ScrollByPage(0.5)) },
+	{ key = "k", mods = "CTRL|ALT", action = act.ScrollByLine(-3) },
+	{ key = "j", mods = "CTRL|ALT", action = act.ScrollByLine(3) },
+	{ key = "Home", mods = "CTRL", action = act.ScrollToTop },
+	{ key = "End", mods = "CTRL", action = act.ScrollToBottom },
+
+	-- Leader-based bindings
+	{ key = "|", mods = "LEADER|SHIFT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+	{ key = "\\", mods = "LEADER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+	{ key = "-", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+	{ key = "_", mods = "LEADER|SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+
+	-- Pane management
+	{ key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
+	{ key = "x", mods = "LEADER", action = act.CloseCurrentPane({ confirm = true }) },
+	{ key = "!", mods = "LEADER|SHIFT", action = act.PaneSelect({ mode = "SwapWithActive" }) },
+	{ key = "q", mods = "LEADER", action = act.PaneSelect },
+
+	-- Tab management
+	{ key = "c", mods = "LEADER", action = act.SpawnTab("CurrentPaneDomain") },
+	{ key = "n", mods = "LEADER", action = smart_tab_switch(1) },
+	{ key = "p", mods = "LEADER", action = smart_tab_switch(-1) },
+	{ key = "&", mods = "LEADER|SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
+
+	-- Enhanced tab navigation
+	{ key = "Tab", mods = "CTRL", action = act.ActivateTabRelative(1) },
+	{ key = "Tab", mods = "CTRL|SHIFT", action = act.ActivateTabRelative(-1) },
+	{ key = "[", mods = "LEADER", action = act.ActivateTabRelative(-1) },
+	{ key = "]", mods = "LEADER", action = act.ActivateTabRelative(1) },
+
+	-- Workspace management
+	{ key = "w", mods = "LEADER", action = workspace_switcher() },
+	{
+		key = "W",
+		mods = "LEADER|SHIFT",
+		action = act.PromptInputLine({
+			description = "New workspace name:",
+			action = wezterm.action_callback(function(window, pane, line)
+				if line then
+					window:perform_action(act.SwitchToWorkspace({ name = line }), pane)
+				end
+			end),
+		}),
+	},
+
+	-- Quick applications and tools (with error handling)
+	{
+		key = "g",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window, pane)
+			safe_call(function()
+				window:perform_action(act.SpawnCommandInNewTab({ args = { "lazygit" } }), pane)
+			end)
+		end),
+	},
+	{
+		key = "f",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window, pane)
+			safe_call(function()
+				window:perform_action(act.SpawnCommandInNewTab({ args = { "ranger" } }), pane)
+			end)
+		end),
+	},
+	{
+		key = "m",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window, pane)
+			safe_call(function()
+				local cmd = platform.is_windows and { "btop" } or { "btop" }
+				window:perform_action(act.SpawnCommandInNewTab({ args = cmd }), pane)
+			end)
+		end),
+	},
+	{
+		key = "v",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window, pane)
+			safe_call(function()
+				window:perform_action(act.SpawnCommandInNewTab({ args = { "nvim" } }), pane)
+			end)
+		end),
+	},
+
+	-- Project and directory navigation
+	{ key = "o", mods = "LEADER", action = project_launcher() },
+	{ key = "D", mods = "LEADER|SHIFT", action = quick_select_directory() },
+
+	-- Enhanced copy/search mode
+	{ key = "Space", mods = "LEADER", action = enter_copy_mode() },
+	{ key = "/", mods = "LEADER", action = act.Search({ CaseInSensitiveString = "" }) },
+	{ key = "?", mods = "LEADER|SHIFT", action = act.Search({ CaseSensitiveString = "" }) },
+
+	-- Session management
+	{ key = "s", mods = "LEADER", action = named_session_save() },
+	{ key = "S", mods = "LEADER|SHIFT", action = act.EmitEvent("save_session") },
+	{ key = "r", mods = "LEADER", action = act.EmitEvent("restore_session") },
+	{ key = "L", mods = "LEADER|SHIFT", action = act.EmitEvent("load_session") },
+
+	-- Quick layouts
+	{ key = "1", mods = "LEADER|ALT", action = create_layout("ide") },
+	{ key = "2", mods = "LEADER|ALT", action = create_layout("terminal") },
+	{ key = "3", mods = "LEADER|ALT", action = create_layout("quad") },
+
+	-- Command and launcher
+	{ key = ":", mods = "LEADER", action = quick_command() },
+	{ key = "l", mods = "LEADER", action = act.ShowLauncher },
+	{ key = "P", mods = "LEADER|SHIFT", action = act.ActivateCommandPalette },
+
+	-- Font and UI
+	{ key = "=", mods = "CTRL", action = act.IncreaseFontSize },
+	{ key = "-", mods = "CTRL", action = act.DecreaseFontSize },
+	{ key = "0", mods = "CTRL", action = act.ResetFontSize },
+	{ key = "F11", mods = "NONE", action = act.ToggleFullScreen },
+
+	-- Tab renaming and management
+	{
+		key = "e",
+		mods = "LEADER",
+		action = act.PromptInputLine({
+			description = "Tab name:",
+			action = wezterm.action_callback(function(window, pane, line)
+				if line then
+					window:active_tab():set_title(line)
+				end
+			end),
+		}),
+	},
+
+	-- Debug and configuration
+	{ key = "F5", mods = "NONE", action = act.ReloadConfiguration },
+	{ key = "F12", mods = "NONE", action = act.ShowDebugOverlay },
+
+	-- Leader key passthrough
+	{ key = "a", mods = "LEADER|CTRL", action = act.SendKey({ key = "a", mods = "CTRL" }) },
+
+	-- Window management
+	{ key = "N", mods = "CTRL|SHIFT", action = act.SpawnWindow },
 }
 
 -- Add number key bindings for tab navigation (both leader and alt)
 for i = 1, 9 do
-    table.insert(Keys.keys, {
-        key = tostring(i),
-        mods = "LEADER",
-        action = act.ActivateTab(i - 1),
-    })
-    table.insert(Keys.keys, {
-        key = tostring(i),
-        mods = "ALT",
-        action = act.ActivateTab(i - 1),
-    })
+	table.insert(Keys.keys, {
+		key = tostring(i),
+		mods = "LEADER",
+		action = act.ActivateTab(i - 1),
+	})
+	table.insert(Keys.keys, {
+		key = tostring(i),
+		mods = "ALT",
+		action = act.ActivateTab(i - 1),
+	})
 end
 
 return Keys
+

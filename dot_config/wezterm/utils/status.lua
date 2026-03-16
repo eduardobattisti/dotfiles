@@ -180,77 +180,77 @@ end
 
 -- Get current working directory from pane
 local function get_cwd_from_pane(pane)
-	local cwd_uri = pane:get_current_working_dir()
-	if not cwd_uri then
-		return nil
+	return platform.parse_cwd_uri(pane:get_current_working_dir())
+end
+
+-- Format git branch only (minimal mode)
+local function format_git_minimal(branch, colors)
+	if not branch then
+		return {}
 	end
 
-	local cwd = ""
-	if type(cwd_uri) == "userdata" then
-		cwd = cwd_uri.file_path
-	else
-		-- Parse file:// URI
-		cwd_uri = tostring(cwd_uri)
-		if cwd_uri:sub(1, 7) == "file://" then
-			cwd_uri = cwd_uri:sub(8)
-
-			-- Handle Windows paths (file:///C:/...)
-			if platform.is_windows and cwd_uri:match("^/[A-Za-z]:") then
-				cwd_uri = cwd_uri:sub(2)
-			end
-
-			local slash = cwd_uri:find("/")
-			if slash then
-				cwd = cwd_uri:sub(slash):gsub("%%(%x%x)", function(hex)
-					return string.char(tonumber(hex, 16))
-				end)
-			end
-		end
-	end
-
-	return cwd ~= "" and cwd or nil
+	return {
+		{ Foreground = { Color = colors.orange or "#e69875" } },
+		{ Text = " " .. branch },
+		{ Foreground = { Color = colors.fg or "#d3c6aa" } },
+		{ Text = " " },
+	}
 end
 
 -- Setup status bar
-function Status.setup(config, colors)
+-- opts.minimal: when true, skips leader/key-table indicators, shows only
+--               git branch (no stats), and uses a simpler left status.
+function Status.setup(config, colors, opts)
 	colors = colors or {}
+	opts = opts or {}
+	local minimal = opts.minimal or false
 
 	-- Right status with git info and workspace
 	wezterm.on("update-right-status", function(window, pane)
 		local elements = {}
 
-		-- Leader key indicator
-		if window:leader_is_active() then
-			table.insert(elements, { Foreground = { Color = colors.orange or "#e69875" } })
-			table.insert(elements, { Text = " 🔑 " })
+		if not minimal then
+			-- Leader key indicator (full mode only)
+			if window:leader_is_active() then
+				table.insert(elements, { Foreground = { Color = colors.orange or "#e69875" } })
+				table.insert(elements, { Text = " 🔑 " })
+			end
 		end
 
 		-- Get current working directory
 		local cwd = get_cwd_from_pane(pane)
 
-		-- Git information
+		-- Git information (caching active in both modes)
 		if cwd then
 			local branch = get_git_branch(cwd)
 			if branch then
-				local git_status = get_git_status(cwd)
-				local git_elements = format_git(branch, git_status, colors)
+				local git_elements
+				if minimal then
+					git_elements = format_git_minimal(branch, colors)
+				else
+					local git_status = get_git_status(cwd)
+					git_elements = format_git(branch, git_status, colors)
+				end
 				for _, element in ipairs(git_elements) do
 					table.insert(elements, element)
 				end
 			end
 		end
 
-		-- Key table mode indicator
-		local key_table = window:active_key_table()
-		if key_table then
-			table.insert(elements, { Foreground = { Color = colors.blue or "#7fbbb3" } })
-			table.insert(elements, { Text = " 📋 " .. key_table .. " " })
+		if not minimal then
+			-- Key table mode indicator (full mode only)
+			local key_table = window:active_key_table()
+			if key_table then
+				table.insert(elements, { Foreground = { Color = colors.blue or "#7fbbb3" } })
+				table.insert(elements, { Text = " 📋 " .. key_table .. " " })
+			end
 		end
 
 		-- Workspace
 		local workspace = window:active_workspace()
-		if workspace ~= "default" then
-			-- Add separator if we have other info
+		local show_workspace = minimal or workspace ~= "default"
+
+		if show_workspace then
 			if #elements > 0 then
 				table.insert(elements, { Foreground = { Color = colors.bg3 or "#56635f" } })
 				table.insert(elements, { Text = "│ " })
@@ -263,31 +263,39 @@ function Status.setup(config, colors)
 		window:set_right_status(wezterm.format(elements))
 	end)
 
-	-- Left status with hostname and tab count
+	-- Left status
 	wezterm.on("update-status", function(window, pane)
-		local hostname = wezterm.hostname()
 		local tab_count = #window:mux_window():tabs()
 		local active_tab = window:active_tab()
 		local tab_index = 0
 
-		-- Find current tab index
-		for i, tab in ipairs(window:mux_window():tabs()) do
-			if tab:tab_id() == active_tab:tab_id() then
+		for i, t in ipairs(window:mux_window():tabs()) do
+			if t:tab_id() == active_tab:tab_id() then
 				tab_index = i
 				break
 			end
 		end
 
-		local elements = {
-			{ Foreground = { Color = colors.fg or "#d3c6aa" } },
-			{ Text = string.format(" %s ", hostname) },
-		}
+		local elements = {}
 
-		if tab_count > 1 then
-			table.insert(elements, { Foreground = { Color = colors.bg3 or "#56635f" } })
-			table.insert(elements, { Text = "│ " })
-			table.insert(elements, { Foreground = { Color = colors.yellow or "#dbbc7f" } })
-			table.insert(elements, { Text = string.format("%d/%d ", tab_index, tab_count) })
+		if minimal then
+			-- Minimal: just tab count
+			if tab_count > 1 then
+				table.insert(elements, { Foreground = { Color = colors.yellow or "#dbbc7f" } })
+				table.insert(elements, { Text = string.format(" %d/%d ", tab_index, tab_count) })
+			end
+		else
+			-- Full: hostname + tab count
+			local hostname = wezterm.hostname()
+			table.insert(elements, { Foreground = { Color = colors.fg or "#d3c6aa" } })
+			table.insert(elements, { Text = string.format(" %s ", hostname) })
+
+			if tab_count > 1 then
+				table.insert(elements, { Foreground = { Color = colors.bg3 or "#56635f" } })
+				table.insert(elements, { Text = "│ " })
+				table.insert(elements, { Foreground = { Color = colors.yellow or "#dbbc7f" } })
+				table.insert(elements, { Text = string.format("%d/%d ", tab_index, tab_count) })
+			end
 		end
 
 		window:set_left_status(wezterm.format(elements))

@@ -145,4 +145,52 @@ function Platform.get_window_padding()
 	end
 end
 
+-- Parse a file:// URI (or WezTerm Url userdata) into a clean filesystem path.
+-- Handles hostname stripping, percent-decoding, and Windows drive letters.
+function Platform.parse_cwd_uri(uri)
+	if not uri then
+		return nil
+	end
+
+	-- WezTerm Url userdata exposes .file_path directly
+	if type(uri) == "userdata" then
+		local path = uri.file_path
+		if path and path ~= "" then
+			return path
+		end
+		return nil
+	end
+
+	local uri_str = tostring(uri)
+	if uri_str == "" then
+		return nil
+	end
+
+	if uri_str:sub(1, 7) ~= "file://" then
+		return uri_str
+	end
+
+	-- Strip "file://" to get "[hostname]/path"
+	local after_scheme = uri_str:sub(8)
+
+	local slash = after_scheme:find("/")
+	if not slash then
+		return nil
+	end
+
+	local path = after_scheme:sub(slash)
+
+	-- Windows: /C:/path → C:/path
+	if Platform.is_windows and path:match("^/[A-Za-z]:") then
+		path = path:sub(2)
+	end
+
+	-- URL percent-decode
+	path = path:gsub("%%(%x%x)", function(hex)
+		return string.char(tonumber(hex, 16))
+	end)
+
+	return path ~= "" and path or nil
+end
+
 return Platform

@@ -1,15 +1,27 @@
 local wezterm = require("wezterm")
-local session_manager = require("wezterm-session-manager/session-manager")
 local mux = wezterm.mux
 local act = wezterm.action
 
--- Custom modules
-local platform = require("utils.platform")
-local tab = require("utils.tab")
-local theme = require("utils.theme")
+-- Safe module loader
+local function safe_require(mod_path)
+  local ok, mod = pcall(require, mod_path)
+  if not ok then
+    wezterm.log_error("Failed to load " .. mod_path .. ": " .. tostring(mod))
+    return nil
+  end
+  return mod
+end
 
-local keys_module = require("utils.keys")
-local status_module = require("utils.status")
+-- Custom modules (wrapped in pcall for resilience)
+local session_manager = safe_require("wezterm-session-manager/session-manager")
+local platform = safe_require("utils.platform")
+local tab = safe_require("utils.tab")
+local theme = safe_require("utils.theme")
+local keys_module = safe_require("utils.keys")
+local status_module = safe_require("utils.status")
+
+-- Cache WSL distros detection (called once, reused for launch menu and wsl_domains)
+local wsl_distros = (platform and platform.is_windows) and platform.detect_wsl_distros() or {}
 
 -- Configuration object
 local config = {}
@@ -25,10 +37,10 @@ end
 config.front_end = "WebGpu" -- More efficient than OpenGL
 config.webgpu_power_preference = "HighPerformance"
 
--- Font configuration
+-- Font configuration (unified with Zed: JetBrains Mono)
 config.font = wezterm.font_with_fallback({
   {
-    family = "IBM Plex Mono",
+    family = "JetBrains Mono",
     weight = "Regular",
     harfbuzz_features = {
       "calt=1", -- Contextual alternates (ligatures)
@@ -36,14 +48,14 @@ config.font = wezterm.font_with_fallback({
       "liga=1", -- Standard ligatures
     },
   },
-  { family = "JetBrains Mono", weight = "Regular" },
+  { family = "IBM Plex Mono", weight = "Regular" },
   { family = "Source Code Pro", weight = "Regular" },
   -- Emoji and symbol fallbacks
   { family = "Noto Color Emoji" },
   { family = "Segoe UI Emoji" }, -- Windows
   { family = "Apple Color Emoji" }, -- macOS
 })
-config.font_size = platform.get_default_font_size()
+config.font_size = platform and platform.get_default_font_size() or 13
 
 -- Better font rendering
 config.freetype_load_target = "Normal"
@@ -51,7 +63,7 @@ config.freetype_render_target = "Normal"
 
 -- Window appearance
 config.window_background_opacity = 0.9
-config.window_padding = platform.get_window_padding()
+config.window_padding = platform and platform.get_window_padding() or {}
 
 -- Better window management
 config.window_decorations = "RESIZE"
@@ -88,7 +100,7 @@ config.initial_cols = 120
 config.initial_rows = 30
 
 -- Tiling desktop environment support (Linux)
-if platform.is_linux then
+if platform and platform.is_linux then
   config.tiling_desktop_environments = {
     "X11 LG3D",
     "X11 bspwm",
@@ -101,8 +113,12 @@ end
 -- LEADER KEY CONFIGURATION
 -- ===========================
 
-config.leader = keys_module.leader_key
-config.keys = keys_module.keys
+if keys_module then
+  config.leader = keys_module.leader_key
+  config.keys = keys_module.keys
+else
+  config.keys = {}
+end
 
 -- ===========================
 -- MOUSE BINDINGS
@@ -171,7 +187,7 @@ table.insert(config.keys, { key = "Paste", mods = "NONE", action = act.PasteFrom
 local function get_launch_menu()
   local menu = {}
 
-  if platform.is_windows then
+  if platform and platform.is_windows then
     table.insert(menu, {
       label = "PowerShell",
       args = { "powershell.exe", "-NoLogo" },
@@ -181,8 +197,7 @@ local function get_launch_menu()
       args = { "cmd.exe" },
     })
 
-    -- Add WSL distributions
-    local wsl_distros = platform.detect_wsl_distros()
+    -- Add WSL distributions (using cached detection)
     for _, distro in ipairs(wsl_distros) do
       table.insert(menu, {
         label = "WSL - " .. distro,
@@ -211,7 +226,7 @@ local function get_launch_menu()
   })
   table.insert(menu, {
     label = "System Monitor",
-    args = platform.is_windows and { "btop" } or { "btop" },
+    args = (platform and platform.is_windows) and { "btop" } or { "btop" },
   })
   table.insert(menu, {
     label = "File Manager",
@@ -227,8 +242,7 @@ config.launch_menu = get_launch_menu()
 -- WSL DOMAINS (Auto-detected on Windows)
 -- ===========================
 
-if platform.is_windows then
-  local wsl_distros = platform.detect_wsl_distros()
+if platform and platform.is_windows then
   if #wsl_distros > 0 then
     config.wsl_domains = {}
     for _, distro in ipairs(wsl_distros) do
@@ -248,21 +262,25 @@ end
 -- ===========================
 
 -- Session management events
-wezterm.on("save_session", function(window)
-  session_manager.save_state(window)
-end)
+if session_manager then
+  wezterm.on("save_session", function(window)
+    session_manager.save_state(window)
+  end)
 
-wezterm.on("load_session", function(window)
-  session_manager.load_state(window)
-end)
+  wezterm.on("load_session", function(window)
+    session_manager.load_state(window)
+  end)
 
-wezterm.on("restore_session", function(window)
-  session_manager.restore_state(window)
-end)
+  wezterm.on("restore_session", function(window)
+    session_manager.restore_state(window)
+  end)
+end
 
 -- Option 1: Use enhanced status bar (recommended)
 -- Note: Simplified for WSL compatibility - removed battery, RAM, time/date monitoring
-status_module.setup(config, theme.colors)
+if status_module and theme then
+  status_module.setup(config, theme.colors)
+end
 
 -- ===========================
 -- PERFORMANCE OPTIMIZATIONS
@@ -278,8 +296,8 @@ config.animation_fps = 30
 -- ===========================
 
 -- Setup custom tab and theme modules
-tab.setup(config)
-theme.setup(config)
+if tab then tab.setup(config) end
+if theme then theme.setup(config) end
 
 -- ===========================
 -- ADDITIONAL FEATURES
@@ -309,7 +327,7 @@ table.insert(config.hyperlink_rules, {
 config.unicode_version = 14
 
 -- DPI configuration (platform-specific)
-if platform.is_windows then
+if platform and platform.is_windows then
   config.dpi = 96
 end
 

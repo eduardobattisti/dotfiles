@@ -82,33 +82,11 @@ end
 -- @param workspace_data table: The data structure containing the saved workspace state.
 local function recreate_workspace(window, workspace_data)
   local function extract_path_from_dir(working_directory)
-    if not working_directory or working_directory == "" then
+    local path = platform.parse_cwd_uri(working_directory)
+    if not path or path == "" then
       return platform.get_home_dir()
     end
-    
-    -- Handle file:// URIs
-    if working_directory:match("^file://") then
-      working_directory = working_directory:gsub("^file://+", "")
-      
-      -- Windows: file:///C:/path -> C:/path
-      if platform.is_windows then
-        if working_directory:match("^/[A-Za-z]:") then
-          working_directory = working_directory:sub(2)
-        end
-        return platform.normalize_path(working_directory)
-      end
-      
-      -- Linux/Mac: file:///home/user or file://{host}/home/user
-      if working_directory:match("^/") then
-        return working_directory
-      end
-      
-      -- Extract path after hostname
-      local path = working_directory:gsub("^[^/]+", "")
-      return path ~= "" and path or platform.get_home_dir()
-    end
-    
-    return platform.normalize_path(working_directory)
+    return platform.normalize_path(path)
   end
 
   if not workspace_data or not workspace_data.tabs then
@@ -126,9 +104,15 @@ local function recreate_workspace(window, workspace_data)
 
   local initial_pane = window:active_pane()
   local foreground_process = initial_pane:get_foreground_process_name()
+  local process_basename = foreground_process:match("([^/\\]+)$") or foreground_process
+  local shell_names = {
+    sh = true, bash = true, zsh = true, fish = true, csh = true,
+    tcsh = true, dash = true, ksh = true, ash = true, nu = true,
+    ["cmd.exe"] = true, ["powershell.exe"] = true, ["pwsh.exe"] = true,
+  }
 
   -- Check if the foreground process is a shell
-  if foreground_process:find("sh") or foreground_process:find("cmd.exe") or foreground_process:find("powershell.exe") or foreground_process:find("pwsh.exe") or foreground_process:find("nu") then
+  if shell_names[process_basename] then
     -- Safe to close
     initial_pane:send_text("exit\r")
   else
@@ -239,13 +223,58 @@ function session_manager.restore_state(window)
   end
 end
 
---- Allows to select which workspace to load
+--- Allows to select which workspace to load via an InputSelector.
 function session_manager.load_state(window)
-  -- TODO: Implement
-  -- Placeholder for user selection logic
-  -- ...
-  -- TODO: Call the function recreate_workspace(workspace_data) to recreate the workspace
-  -- Placeholder for recreation logic...
+  local session_dir = platform.get_session_dir()
+  local separator = platform.is_windows and "\\" or "/"
+  local pattern = session_dir .. separator .. "wezterm_state_*.json"
+
+  local files = wezterm.glob(pattern)
+  if not files or #files == 0 then
+    window:toast_notification("WezTerm Session Manager", "No saved sessions found", nil, 4000)
+    return
+  end
+
+  local choices = {}
+  for _, file_path in ipairs(files) do
+    local name = file_path:match("wezterm_state_(.+)%.json$")
+    if name then
+      table.insert(choices, { id = file_path, label = name })
+    end
+  end
+
+  if #choices == 0 then
+    window:toast_notification("WezTerm Session Manager", "No saved sessions found", nil, 4000)
+    return
+  end
+
+  window:perform_action(
+    wezterm.action.InputSelector({
+      title = "Select Session to Load",
+      choices = choices,
+      action = wezterm.action_callback(function(inner_window, pane, id, label)
+        if not id or not label then
+          return
+        end
+
+        local workspace_data = load_from_json_file(id)
+        if not workspace_data then
+          inner_window:toast_notification("WezTerm Session Manager",
+            "Failed to load session: " .. label, nil, 4000)
+          return
+        end
+
+        if recreate_workspace(inner_window, workspace_data) then
+          inner_window:toast_notification("WezTerm Session Manager",
+            "Session loaded: " .. label, nil, 4000)
+        else
+          inner_window:toast_notification("WezTerm Session Manager",
+            "Failed to restore session: " .. label, nil, 4000)
+        end
+      end),
+    }),
+    window:active_pane()
+  )
 end
 
 --- Orchestrator function to save the current workspace state.
