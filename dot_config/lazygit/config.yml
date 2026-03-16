@@ -1,0 +1,170 @@
+gui:
+  scrollHeight: 2
+  scrollPastBottom: true
+  mouseEvents: true
+  sidePanelWidth: 0.3333
+  expandFocusedSidePanel: true
+  mainPanelSplitMode: flexible
+  language: auto
+  timeFormat: "02 Jan 06"
+  shortTimeFormat: "3:04PM"
+  border: rounded
+  nerdFontsVersion: "3"
+  showFileTree: true
+  showRandomTip: false
+  showCommandLog: false
+  showBottomLine: true
+  showPanelJumps: true
+  showIcons: true
+  showFileIcons: true
+  showBranchCommitHash: false
+  showDivergenceFromBaseBranch: arrowAndNumber
+  commitHashLength: 8
+  splitDiff: auto
+  windowSize: normal
+  animateExplosion: true
+  statusPanelView: dashboard
+  filterMode: substring
+
+  # Everforest Dark Medium (unified with Zed, WezTerm, Lazydocker)
+  theme:
+    activeBorderColor:
+      - "#7fbbb3"
+      - bold
+    inactiveBorderColor:
+      - "#9da9a0"
+    searchingActiveBorderColor:
+      - "#dbbc7f"
+      - bold
+    optionsTextColor:
+      - "#7fbbb3"
+    selectedLineBgColor:
+      - "#3c474d"
+    inactiveViewSelectedLineBgColor:
+      - bold
+    cherryPickedCommitFgColor:
+      - "#7fbbb3"
+    cherryPickedCommitBgColor:
+      - "#475258"
+    markedBaseCommitFgColor:
+      - "#a7c080"
+    markedBaseCommitBgColor:
+      - "#475258"
+    unstagedChangesColor:
+      - "#e67e80"
+    defaultFgColor:
+      - "#d3c6aa"
+
+  authorColors:
+    "*": "#7fbbb3"
+
+os:
+  editPreset: nvim-remote
+
+git:
+  paging:
+    colorArg: always
+    pager: ""
+  commit:
+    signOff: false
+    autoWrapCommitMessage: true
+    autoWrapWidth: 72
+  merging:
+    manualCommit: false
+    args: ""
+  mainBranches:
+    - master
+    - main
+    - develop
+  autoFetch: true
+  autoRefresh: true
+  fetchAll: true
+  autoStageResolvedConflicts: true
+  branchLogCmd: git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --
+  allBranchesLogCmd: git log --graph --all --color=always --abbrev-commit --decorate --date=relative --pretty=medium
+  parseEmoji: true
+  log:
+    order: topo-order
+    showGraph: always
+    showWholeGraph: false
+  truncateCopiedCommitHashesTo: 8
+
+update:
+  method: prompt
+  days: 14
+
+refresher:
+  refreshInterval: 10
+  fetchInterval: 60
+
+confirmOnQuit: false
+quitOnTopLevelReturn: true
+disableStartupPopups: true
+promptToReturnFromSubprocess: false
+
+customCommands:
+  # Conventional commit with prompted type
+  - key: "C"
+    context: "files"
+    description: "Conventional commit"
+    prompts:
+      - type: "menu"
+        title: "Commit type"
+        key: "Type"
+        options:
+          - name: "feat"
+            description: "A new feature"
+            value: "feat"
+          - name: "fix"
+            description: "A bug fix"
+            value: "fix"
+          - name: "refactor"
+            description: "Code refactoring"
+            value: "refactor"
+          - name: "chore"
+            description: "Maintenance task"
+            value: "chore"
+          - name: "docs"
+            description: "Documentation only"
+            value: "docs"
+          - name: "style"
+            description: "Code style (formatting, etc)"
+            value: "style"
+          - name: "test"
+            description: "Adding or updating tests"
+            value: "test"
+          - name: "perf"
+            description: "Performance improvement"
+            value: "perf"
+          - name: "ci"
+            description: "CI/CD changes"
+            value: "ci"
+      - type: "input"
+        title: "Scope (optional, press enter to skip)"
+        key: "Scope"
+        initialValue: ""
+      - type: "input"
+        title: "Commit message"
+        key: "Message"
+        initialValue: ""
+    command: "git commit -m '{{.Form.Type}}{{if .Form.Scope}}({{.Form.Scope}}){{end}}: {{.Form.Message}}'"
+    loadingText: "Committing..."
+
+  # Open repo in browser
+  - key: "O"
+    context: "global"
+    description: "Open repo in browser"
+    command: "xdg-open $(git remote get-url origin | sed 's/\\.git$//' | sed 's|git@\\(.*\\):|https://\\1/|') >/dev/null 2>&1 &"
+    loadingText: "Opening..."
+
+  # Stash staged changes only
+  - key: "S"
+    context: "files"
+    description: "Stash staged changes"
+    prompts:
+      - type: "input"
+        title: "Stash message"
+        key: "Message"
+        initialValue: ""
+    command: "git stash push -m '{{.Form.Message}}' -- $(git diff --cached --name-only)"
+    loadingText: "Stashing staged..."
