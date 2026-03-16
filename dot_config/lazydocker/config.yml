@@ -1,0 +1,86 @@
+gui:
+  scrollHeight: 2
+  language: auto
+  border: rounded
+  sidePanelWidth: 0.25
+  expandFocusedSidePanel: true
+  showBottomLine: true
+  screenMode: normal
+  containerStatusHealthStyle: icon
+  returnImmediately: false
+  wrapMainPanel: true
+
+  # Everforest Dark Medium theme (unified with Zed, WezTerm, Lazygit)
+  theme:
+    activeBorderColor:
+      - "#7fbbb3"
+      - bold
+    inactiveBorderColor:
+      - "#9da9a0"
+    selectedLineBgColor:
+      - "#3c474d"
+    optionsTextColor:
+      - "#7fbbb3"
+
+logs:
+  timestamps: true
+  since: "60m"
+  tail: "300"
+
+commandTemplates:
+  dockerCompose: docker compose
+  restartService: "{{ .DockerCompose }} restart {{ .Service.Name }}"
+  up: "{{ .DockerCompose }} up -d"
+  down: "{{ .DockerCompose }} down"
+  downWithVolumes: "{{ .DockerCompose }} down --volumes"
+  upService: "{{ .DockerCompose }} up -d {{ .Service.Name }}"
+  startService: "{{ .DockerCompose }} start {{ .Service.Name }}"
+  stopService: "{{ .DockerCompose }} stop {{ .Service.Name }}"
+  serviceLogs: "{{ .DockerCompose }} logs --since=60m --follow {{ .Service.Name }}"
+  viewServiceLogs: "{{ .DockerCompose }} logs --follow {{ .Service.Name }}"
+  rebuildService: "{{ .DockerCompose }} up -d --build {{ .Service.Name }}"
+  recreateService: "{{ .DockerCompose }} up -d --force-recreate {{ .Service.Name }}"
+  allLogs: "{{ .DockerCompose }} logs --tail=300 --follow"
+  viewAlLogs: "{{ .DockerCompose }} logs"
+  dockerComposeConfig: "{{ .DockerCompose }} config"
+  checkDockerComposeConfig: "{{ .DockerCompose }} config --quiet"
+  serviceTop: "{{ .DockerCompose }} top {{ .Service.Name }}"
+
+oS:
+  openCommand: xdg-open {{filename}}
+  openLinkCommand: xdg-open {{link}}
+
+stats:
+  graphs:
+    - caption: CPU (%)
+      statPath: DerivedStats.CPUPercentage
+      color: blue
+    - caption: Memory (%)
+      statPath: DerivedStats.MemoryPercentage
+      color: green
+
+customCommands:
+  containers:
+    # Shell into container (bash with sh fallback)
+    - name: bash
+      attach: true
+      command: "docker exec -it {{ .Container.ID }} /bin/bash || docker exec -it {{ .Container.ID }} /bin/sh"
+      serviceNames: []
+
+    # View container IP address
+    - name: ip address
+      attach: false
+      command: 'docker inspect --format ''{{ "{{" }}.NetworkSettings.IPAddress{{ "}}" }}'' {{ .Container.ID }}'
+      serviceNames: []
+
+    # Live resource usage
+    - name: stats
+      attach: true
+      command: "docker stats {{ .Container.ID }}"
+      serviceNames: []
+
+    # Prune unused images
+    - name: prune images
+      attach: false
+      command: "docker image prune -f"
+      serviceNames: []
