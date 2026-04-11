@@ -28,7 +28,7 @@ return {
         lsp_utils.keymap('<leader>la', vim.lsp.buf.code_action, event.buf, '[C]ode [A]ction')
         lsp_utils.keymap('gD', vim.lsp.buf.declaration, event.buf, '[G]oto [D]eclaration')
         lsp_utils.keymap('K', vim.lsp.buf.hover, event.buf, 'Hover Documentation')
-        lsp_utils.keymap('<C-k>', vim.lsp.buf.signature_help, event.buf, 'Signature Help')
+        lsp_utils.keymap('<leader>lk', vim.lsp.buf.signature_help, event.buf, 'Signature Help')
 
         -- LSP status check for debugging
         lsp_utils.keymap('<leader>li', '<cmd>LspInfo<cr>', event.buf, 'LSP [I]nfo')

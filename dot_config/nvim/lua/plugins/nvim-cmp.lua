@@ -68,6 +68,13 @@ return {
     cmp.setup {
       enabled = function()
         local context = require 'cmp.config.context'
+        local buftype = vim.api.nvim_get_option_value('buftype', { buf = 0 })
+        local filetype = vim.api.nvim_get_option_value('filetype', { buf = 0 })
+
+        if buftype == 'prompt' or filetype == 'TelescopePrompt' then
+          return false
+        end
+
         if vim.api.nvim_get_mode().mode == 'c' then
           return true
         else
@@ -184,11 +191,9 @@ return {
 
     cmp.setup.cmdline(':', {
       mapping = cmp.mapping.preset.cmdline(),
-      sources = cmp.config.sources({
-        { name = 'path' },
-      }, {
+      sources = {
         { name = 'cmdline' },
-      }),
+      },
     })
 
     vim.api.nvim_set_hl(0, 'CmpGhostText', { link = 'Comment', default = true })

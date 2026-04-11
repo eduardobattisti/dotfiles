@@ -128,11 +128,20 @@ return {
 
     -- PHP debug adapter (vscode-php-debug via Mason)
     local php_debug_package = require('mason-registry').get_package('php-debug-adapter')
-    if php_debug_package then
+    local php_debug_install_path
+
+    if php_debug_package and type(php_debug_package.get_install_path) == 'function' then
+      php_debug_install_path = php_debug_package:get_install_path()
+    else
+      php_debug_install_path = vim.fn.stdpath('data') .. '/mason/packages/php-debug-adapter'
+    end
+
+    local php_debug_adapter = php_debug_install_path .. '/extension/out/phpDebug.js'
+    if vim.uv.fs_stat(php_debug_adapter) then
       dap.adapters.php = {
         type = 'executable',
         command = 'node',
-        args = { php_debug_package:get_install_path() .. '/extension/out/phpDebug.js' },
+        args = { php_debug_adapter },
       }
 
       dap.configurations.php = {

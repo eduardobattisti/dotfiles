@@ -13,7 +13,7 @@ A modular, fast, and modern Neovim configuration.
 
 ## Getting Started
 
-1. **Install Neovim** (version >= 0.9.4 recommended)
+1. **Install Neovim** (version >= 0.10 recommended)
 2. **Clone this repo** to your config directory:
    ```sh
    git clone <this-repo-url> ~/.config/nvim
@@ -51,6 +51,12 @@ nvim/
   Edit files in `lua/config/` for options, mappings, and autocmds.
 - **LSP servers:**
   Add or modify configs in `lua/config/lsp/servers/`.
+
+## AI workflow (CLI + in-editor)
+
+- **Copilot CLI / agents:** best for automação, análises amplas, refatorações em lote e tarefas orientadas a terminal.
+- **Avante/Copilot no Neovim:** melhor para edição contextual no buffer atual, pequenas iterações e prompts diretamente no código.
+- **Abordagem recomendada:** usar os dois de forma complementar (CLI para orquestração, plugin para edição local rápida).
 
 ## Credits & Inspiration
 

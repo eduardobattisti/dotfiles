@@ -35,7 +35,6 @@ local handlers = {
     border = LSP_BORDER,
   }),
   ['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = LSP_BORDER }),
-  ['textDocument/publishDiagnostics'] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = true }),
   ['textDocument/definition'] = function(err, result, method, ...)
     vim.lsp.handlers['textDocument/definition'](err, result, method, ...)
   end,
