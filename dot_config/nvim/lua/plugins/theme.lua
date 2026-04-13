@@ -1,18 +1,14 @@
 return {
-  'neanias/everforest-nvim',
+  'sainnhe/gruvbox-material',
   version = false,
   lazy = false,
   priority = 1000,
   config = function()
-    local everforest = require 'everforest'
-
-    everforest.setup {
-      background = 'medium',
-      transparent_background_level = 0,
-      italics = true,
-      disable_italic_comments = false,
-    }
-
-    everforest.load()
+    vim.g.gruvbox_material_background = 'medium'
+    vim.g.gruvbox_material_foreground = 'material'
+    vim.g.gruvbox_material_enable_italic = 1
+    vim.g.gruvbox_material_disable_italic_comment = 0
+    vim.g.gruvbox_material_transparent_background = 0
+    vim.cmd.colorscheme 'gruvbox-material'
   end,
 }
