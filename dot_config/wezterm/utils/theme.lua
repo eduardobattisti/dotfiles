@@ -1,22 +1,22 @@
 local Theme = {}
 
 Theme.colors = {
-	bg = "#2f383e", -- medium background
-	fg = "#d3c6aa", -- foreground
-	red = "#e67e80",
-	green = "#a7c080",
-	yellow = "#dbbc7f",
-	blue = "#7fbbb3",
-	purple = "#d699b6",
-	aqua = "#83c092",
-	gray = "#9da9a0",
-	orange = "#e69875",
+	bg = "#282828", -- dark medium background
+	fg = "#d4be98", -- foreground
+	red = "#ea6962",
+	green = "#a9b665",
+	yellow = "#d8a657",
+	blue = "#7daea3",
+	purple = "#d3869b",
+	aqua = "#89b482",
+	gray = "#928374",
+	orange = "#e78a4e",
 
-	bg0 = "#2b3339", -- darker background for inactive
-	bg1 = "#3c474d", -- tab bar background
-	bg2 = "#475258", -- hover background
-	bg3 = "#56635f", -- scrollbar/thumbs
-	bg4 = "#64706b", -- slightly lighter grey
+	bg0 = "#1d2021", -- darker background for inactive
+	bg1 = "#32302f", -- tab bar background
+	bg2 = "#3c3836", -- hover background
+	bg3 = "#45403d", -- scrollbar/thumbs
+	bg4 = "#5a524c", -- slightly lighter grey
 }
 
 function Theme.setup(config)
