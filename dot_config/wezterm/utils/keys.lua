@@ -72,7 +72,11 @@ local function quick_select_directory()
 		action = wezterm.action_callback(function(window, pane)
 			local url = window:get_selection_text_for_pane(pane)
 			if url then
-				window:perform_action(act.SpawnCommandInNewTab({ args = { "cd", url } }), pane)
+				local dir = url
+				if dir:sub(1, 1) == "~" then
+					dir = platform.get_home_dir() .. dir:sub(2)
+				end
+				window:perform_action(act.SpawnCommandInNewTab({ cwd = dir }), pane)
 			end
 		end),
 	})
@@ -452,4 +456,3 @@ for i = 1, 9 do
 end
 
 return Keys
-

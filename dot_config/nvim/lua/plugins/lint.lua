@@ -8,6 +8,9 @@ return {
         markdown = { 'markdownlint' },
         php = { 'phpcs' },
         javascript = { 'biomejs' },
+        javascriptreact = { 'biomejs' },
+        typescript = { 'biomejs' },
+        typescriptreact = { 'biomejs' },
       }
 
       -- Create autocommand which carries out the actual linting
