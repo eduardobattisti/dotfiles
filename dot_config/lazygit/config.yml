@@ -154,7 +154,7 @@ customCommands:
   - key: "O"
     context: "global"
     description: "Open repo in browser"
-    command: "xdg-open $(git remote get-url origin | sed 's/\\.git$//' | sed 's|git@\\(.*\\):|https://\\1/|') >/dev/null 2>&1 &"
+    command: "dotfiles-open $(git remote get-url origin | sed 's/\\.git$//' | sed 's|git@\\(.*\\):|https://\\1/|')"
     loadingText: "Opening..."
 
   # Stash staged changes only

@@ -1,7 +1,18 @@
 # Custom functions
 
 function open() {
-  (xdg-open "${1:-.}" >/dev/null 2>&1 &)
+  local opener
+  case "$OSTYPE" in
+    darwin*) opener="open" ;;
+    *) opener="xdg-open" ;;
+  esac
+
+  if command -v "$opener" >/dev/null 2>&1; then
+    command "$opener" "${1:-.}" >/dev/null 2>&1 &
+  else
+    print -u2 "No supported file opener found"
+    return 1
+  fi
 }
 
 # Auto-switch node version when entering a directory with .nvmrc

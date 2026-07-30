@@ -131,3 +131,24 @@
 **/notes/
 **/todo.txt
 **/TODO.md
+
+# Repository-only bootstrap and documentation
+install.sh
+scripts/
+tests/
+README.md
+SETUP.md
+
+{{- if eq .chezmoi.os "windows" }}
+# Native Windows only needs the shared WezTerm configuration. Development
+# commands and editor state live inside WSL.
+.bashrc
+.zshrc
+.config/flameshot/
+.config/htop/
+.config/lazydocker/
+.config/lazygit/
+.config/nvim/
+.config/starship.toml
+.config/zsh/
+{{- end }}

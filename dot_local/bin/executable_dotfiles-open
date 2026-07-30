@@ -1,0 +1,21 @@
+#!/bin/sh
+
+set -eu
+
+target="${1:-.}"
+
+case "$(uname -s)" in
+  Darwin)
+    exec open "$target"
+    ;;
+  Linux)
+    if command -v wslview >/dev/null 2>&1; then
+      exec wslview "$target"
+    fi
+    exec xdg-open "$target"
+    ;;
+  *)
+    printf 'dotfiles-open: unsupported platform\n' >&2
+    exit 1
+    ;;
+esac

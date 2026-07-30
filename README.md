@@ -1,142 +1,102 @@
-# Chezmoi Dotfiles Configuration
+# Development Dotfiles
 
-This repository contains my personal dotfiles managed with [chezmoi](https://www.chezmoi.io/), a tool for managing your dotfiles across multiple diverse machines securely.
+Personal development environment managed by
+[chezmoi](https://www.chezmoi.io/). The repository contains configurations for
+Zsh, Starship, WezTerm, Neovim, Lazygit, Lazydocker, Flameshot, htop, and the
+bootstrap that installs or updates their applications.
 
-## 📁 Structure
+## Fresh machine
 
-```
-~/.local/share/chezmoi/
-├── dot_bashrc                    # Bash shell configuration
-├── dot_zshrc                     # Zsh shell configuration with Oh My Zsh
-└── dot_config/
-    ├── starship.toml             # Starship prompt configuration
-    ├── flameshot/                # Screenshot tool configuration
-    ├── lazygit/                  # Git TUI configuration
-    ├── nvim/                     # Neovim configuration
-    ├── private_htop/             # System monitor configuration
-    └── wezterm/                  # Terminal emulator configuration
+Review the installer before running it:
+
+```sh
+curl -fsSL \
+  https://raw.githubusercontent.com/eduardobattisti/dotfiles/main/install.sh
 ```
 
-## 🛠️ Applications Configured
+Run the default workstation setup:
 
-### Shell & Terminal
-- **Zsh**: Configured with Oh My Zsh using the `robbyrussell` theme
-- **Bash**: Basic bash configuration
-- **Starship**: Custom prompt with programming language indicators and git status
-- **WezTerm**: Modern terminal emulator with advanced configuration
-
-### Development Tools
-- **Neovim**: Full IDE-like configuration with plugins
-- **Git**: LazyGit TUI for enhanced git workflow
-- **Node.js**: NVM integration for Node version management
-- **Bun**: JavaScript runtime and package manager
-- **Python**: Development environment setup
-
-### System Tools
-- **htop**: System process viewer (private configuration)
-- **Flameshot**: Screenshot tool
-
-### Cloud & Deployment
-- **Fly.io**: Flyctl CLI tool integration
-
-## 🚀 Installation
-
-### Prerequisites
-- Install [chezmoi](https://www.chezmoi.io/install/)
-
-### Quick Setup
-```bash
-# Initialize chezmoi with this repository
-chezmoi init https://github.com/yourusername/dotfiles.git
-
-# Apply the configuration
-chezmoi apply
+```sh
+curl -fsSL \
+  https://raw.githubusercontent.com/eduardobattisti/dotfiles/main/install.sh |
+  bash
 ```
 
-### Manual Setup
-```bash
-# Clone this repository to your chezmoi source directory
-git clone https://github.com/yourusername/dotfiles.git ~/.local/share/chezmoi
+For a non-interactive run:
 
-# Apply the dotfiles
-chezmoi apply
+```sh
+curl -fsSL \
+  https://raw.githubusercontent.com/eduardobattisti/dotfiles/main/install.sh |
+  bash -s -- --yes
 ```
 
-## 🎨 Features
+The bootstrap installs chezmoi when needed, initializes this repository,
+re-executes the checked-out copy of itself, reconciles the managed
+applications, and applies the dotfiles.
 
-### Starship Prompt
-- **Custom Format**: Clean, informative prompt with language indicators
-- **Git Integration**: Branch and status information
-- **Language Support**: Icons and versions for Python, Node.js, Rust, Go, and more
-- **Theme**: Uses Catppuccin Frappé color palette
-- **Performance**: Shows command duration for commands taking >500ms
+## Reconcile an existing machine
 
-### Zsh Configuration
-- **Oh My Zsh**: Popular Zsh framework
-- **Plugins**: 
-  - `git`: Git aliases and functions
-  - `zsh-history-substring-search`: Better history searching
-- **Integrations**:
-  - Starship prompt
-  - NVM (Node Version Manager)
-  - Bun package manager
-  - Fly.io CLI tools
+Run from the chezmoi source directory:
 
-### Development Environment
-- **Neovim**: Full configuration with modern plugins
-- **Path Management**: Proper PATH setup for various tools
-- **Version Managers**: NVM for Node.js versions
+```sh
+chezmoi cd
+./install.sh
+```
 
-## 🔧 Customization
+Every normal run:
 
-### Modifying Starship
-Edit `dot_config/starship.toml` to customize your prompt. The current configuration includes:
-- Directory path with custom icons
-- Git branch and status
-- Programming language versions
-- Command execution time
-- Custom color palette (Catppuccin Frappé)
+1. detects the operating system, distribution, architecture, and WSL;
+2. reports current, missing, and outdated managed applications;
+3. installs missing applications;
+4. updates outdated managed applications to their stable channels;
+5. applies chezmoi; and
+6. verifies commands, Zsh syntax, Docker, and the terminal font.
 
-### Adding New Configurations
-1. Add your dotfile to the chezmoi source directory
-2. Use chezmoi's naming convention (e.g., `dot_filename` for `.filename`)
-3. Apply changes with `chezmoi apply`
+Updates are targeted. The script does **not** perform a full operating-system
+upgrade and does not update Neovim plugins, Mason packages, Oh My Zsh, or Zsh
+plugins.
 
-## 📝 Management Commands
+Useful options:
 
-```bash
-# Check what changes chezmoi would make
-chezmoi diff
+```text
+--profile workstation|core
+--dry-run
+--install-only
+--yes
+--no-apply
+```
 
-# Apply all changes
-chezmoi apply
+`workstation` is the default. It includes Node LTS through NVM, PHP/Composer,
+btop, and Flameshot. `core` omits those workstation extras. Bun and Fly.io are
+intentionally not installed.
 
-# Edit a file in your $EDITOR and apply changes
-chezmoi edit ~/.zshrc
+## Supported platforms
 
-# Add a new file to chezmoi
-chezmoi add ~/.newconfig
+- Debian, Ubuntu, Pop!_OS, and Ubuntu-based WSL distributions are supported.
+- Under WSL, CLI tools live in Linux. PowerShell/winget manages native Windows
+  WezTerm, Logseq, Docker Desktop, BlexMono Nerd Font, and Windows chezmoi.
+- macOS uses Homebrew and is implemented as a best-effort, untested path.
+- Other Linux distribution families exit with an explicit unsupported-system
+  message.
 
-# Update from remote repository
-chezmoi update
+Linux uses native WezTerm and Flatpak Logseq. Existing Flatpak/native
+duplicates and old `/opt` installations are reported but never removed
+automatically.
 
-# See the current status
+## Daily chezmoi workflow
+
+```sh
 chezmoi status
+chezmoi diff
+chezmoi apply
+chezmoi update
 ```
 
+Package reconciliation is intentionally separate from `chezmoi apply`; only
+`install.sh` installs or upgrades applications.
 
+Machine-local secrets may be placed in `~/.config/zsh/.secrets`. Logseq graphs,
+application state, Docker data, Neovim plugins, and Mason caches are not managed
+by this repository.
 
-## 🤝 Contributing
-
-Feel free to fork this repository and adapt it to your needs. If you have improvements or suggestions, please open an issue or pull request.
-
-## 📚 Resources
-
-- [Chezmoi Documentation](https://www.chezmoi.io/)
-- [Starship Documentation](https://starship.rs/)
-- [Oh My Zsh](https://ohmyz.sh/)
-- [WezTerm Documentation](https://wezfurlong.org/wezterm/)
-
-## 📄 License
-
-This configuration is provided as-is for personal use. Feel free to adapt and modify according to your needs.
+See [SETUP.md](SETUP.md) for troubleshooting and platform details.

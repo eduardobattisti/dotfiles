@@ -1,252 +1,105 @@
-# Chezmoi Dotfiles Setup Guide
+# Setup and Troubleshooting
 
-This guide will help you set up your dotfiles on a new machine using chezmoi with secure, templated configurations.
+## Installer modes
 
-## 🚀 Quick Setup (New Machine)
+Preview without changing anything:
 
-### 1. Install chezmoi
-```bash
-# Using curl
-sh -c "$(curl -fsLS get.chezmoi.io)"
-
-# Or using package manager (Ubuntu/Debian)
-sudo apt install chezmoi
-
-# Or using Homebrew (macOS/Linux)
-brew install chezmoi
+```sh
+./install.sh --dry-run
 ```
 
-### 2. Initialize with this repository
-```bash
-# Replace with your actual repository URL
-chezmoi init https://github.com/yourusername/dotfiles.git
+Install missing applications without upgrading installed versions:
+
+```sh
+./install.sh --install-only
 ```
 
-### 3. Review what will be applied
-```bash
+Reconcile packages but inspect dotfile changes separately:
+
+```sh
+./install.sh --no-apply
 chezmoi diff
-```
-
-### 4. Apply the configuration
-```bash
 chezmoi apply
 ```
 
-During the first run, chezmoi will prompt you for:
-- **Email address**: Your email for git and other tools
-- **Neovim path**: Path to your Neovim installation (default: `/opt/nvim-linux64/bin`)
-- **Oh My Zsh usage**: Whether you want to use Oh My Zsh (default: yes)
+Use `DOTFILES_REPO` for a fork and the documented `DOTFILES_*_VERSION`
+variables to override individual release channels.
 
-## 🔧 Manual Setup Steps
+## Linux
 
-### Prerequisites
-Make sure you have the following installed:
+Debian/Ubuntu derivatives use targeted APT installs. Docker Engine uses
+Docker's Ubuntu repository, WezTerm uses its official stable APT repository,
+and Logseq uses Flathub.
 
-1. **Git**: `sudo apt install git` or `brew install git`
-2. **Zsh**: `sudo apt install zsh` or `brew install zsh`
-3. **Oh My Zsh** (optional but recommended):
-   ```bash
-   sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-   ```
-4. **Starship prompt**:
-   ```bash
-   curl -sS https://starship.rs/install.sh | sh
-   ```
-5. **Node.js via NVM**:
-   ```bash
-   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-   ```
+Adding the user to the `docker` group requires logging out and back in. The
+installer reports this instead of claiming Docker is immediately ready.
 
-### Post-Installation Steps
+The installer puts user-managed binaries in `~/.local/bin` and Neovim releases
+under `~/.local/opt`. It does not delete an older `/opt` Neovim or Flatpak
+WezTerm.
 
-1. **Set Zsh as default shell** (if not already):
-   ```bash
-   chsh -s $(which zsh)
-   ```
+## Windows and WSL
 
-2. **Install development tools** (as needed):
-   ```bash
-   # Neovim
-   curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-   sudo tar -C /opt -xzf nvim-linux64.tar.gz
-   
-   # Bun (JavaScript runtime)
-   curl -fsSL https://bun.sh/install | bash
-   
-   # Fly.io CLI
-   curl -L https://fly.io/install.sh | sh
-   ```
+Run the Bash installer inside an Ubuntu-like WSL distribution. It invokes
+PowerShell to reconcile these Windows-host packages through winget:
 
-3. **Restart your shell** or source the configuration:
-   ```bash
-   source ~/.zshrc
-   ```
+- WezTerm
+- Logseq
+- Docker Desktop
+- chezmoi
+- BlexMono Nerd Font
 
-## 🔄 Daily Usage
+Windows chezmoi applies only the native WezTerm configuration. Zsh, Neovim,
+Lazygit, and Lazydocker remain inside WSL.
 
-### Update dotfiles from repository
-```bash
-chezmoi update
+After Docker Desktop installation, enable the distribution under:
+
+```text
+Docker Desktop > Settings > Resources > WSL Integration
 ```
 
-### Edit a configuration file
-```bash
-# This opens the file in your editor and applies changes automatically
-chezmoi edit ~/.zshrc
+If `powershell.exe` or `winget.exe` is unavailable from WSL, the installer
+prints a manual follow-up and leaves the Linux setup intact.
+
+## macOS
+
+The macOS path bootstraps Homebrew after confirmation and uses formulas/casks
+for the managed applications. It is not validated on physical macOS hardware.
+
+## Chezmoi configuration
+
+`.chezmoi.toml.tmpl` generates machine-local configuration. The installer
+exports the chosen profile while running `chezmoi init`; `DOTFILES_EMAIL` can
+optionally populate the non-secret email setting.
+
+To regenerate machine-local chezmoi data after template changes:
+
+```sh
+chezmoi init
 ```
 
-### Add a new file to chezmoi
-```bash
-chezmoi add ~/.newconfig
-```
+To validate before applying:
 
-### Check what has changed
-```bash
+```sh
+chezmoi execute-template --init < \
+  "$(chezmoi source-path)/.chezmoi.toml.tmpl"
 chezmoi diff
 ```
 
-### Apply any pending changes
-```bash
-chezmoi apply
+## Validation
+
+Run the repository smoke tests:
+
+```sh
+bash tests/bootstrap_test.sh
 ```
 
-### Check status
-```bash
-chezmoi status
+If ShellCheck is installed:
+
+```sh
+shellcheck install.sh tests/bootstrap_test.sh \
+  dot_local/bin/executable_dotfiles-open
 ```
 
-## 🛠️ Customization
-
-### Machine-Specific Settings
-
-The configuration uses templates to adapt to different machines. Key variables:
-
-- `{{ .chezmoi.homeDir }}`: Your home directory
-- `{{ .chezmoi.username }}`: Your username  
-- `{{ .chezmoi.hostname }}`: Your machine hostname
-- `{{ .email }}`: Your email address (prompted on first run)
-- `{{ .useOhMyZsh }}`: Whether to enable Oh My Zsh features
-
-### Adding New Templates
-
-1. Create template files with `.tmpl` extension:
-   ```bash
-   chezmoi add --template ~/.config/newapp/config.yaml
-   ```
-
-2. Use template variables in the file:
-   ```yaml
-   user_email: {{ .email }}
-   home_path: {{ .chezmoi.homeDir }}
-   ```
-
-3. Add prompts to `.chezmoi.toml.tmpl` for new variables:
-   ```toml
-   {{- $newVar := promptStringOnce . "newVar" "Enter new variable" "default" -}}
-   ```
-
-### Per-Machine Configuration
-
-Create machine-specific files using hostname:
-```bash
-# This file only applies to machines with hostname "workstation"
-chezmoi add --template ~/.config/app/workstation.conf
-```
-
-## 🔒 Security Best Practices
-
-### What NOT to commit:
-- Actual API keys, passwords, or tokens
-- Private SSH keys
-- Personal photos or documents
-- Complete `.git` directories from other projects
-
-### What TO template:
-- File paths that include usernames
-- Email addresses
-- Machine-specific settings
-- Directory paths
-
-### Using Private Files:
-For sensitive configurations, use the `private_` prefix:
-```bash
-chezmoi add ~/.config/private_app/secret.conf
-```
-
-This creates `private_dot_config/private_app/secret.conf` in your chezmoi source directory.
-
-## 🐛 Troubleshooting
-
-### Permission Issues
-```bash
-# Fix file permissions
-chezmoi apply --force
-
-# Check what chezmoi wants to do
-chezmoi diff
-```
-
-### Template Errors
-```bash
-# Validate templates
-chezmoi execute-template < ~/.local/share/chezmoi/dot_zshrc.tmpl
-
-# Reset configuration
-rm ~/.config/chezmoi/chezmoi.toml
-chezmoi init --apply
-```
-
-### Clean Restart
-```bash
-# Remove local chezmoi data (keeps your source directory)
-rm -rf ~/.local/share/chezmoi
-chezmoi init https://github.com/yourusername/dotfiles.git
-```
-
-## 📚 Advanced Features
-
-### Using Age Encryption
-For encrypting sensitive files:
-```bash
-# Install age
-sudo apt install age
-
-# Generate key
-age-keygen -o ~/.config/chezmoi/key.txt
-
-# Add encrypted file
-chezmoi add --encrypt ~/.config/app/secret.conf
-```
-
-### Git Integration
-```bash
-# Commit changes from chezmoi source directory
-chezmoi cd
-git add .
-git commit -m "feat: update configuration"
-git push
-exit
-
-# Or use chezmoi git commands
-chezmoi git add .
-chezmoi git commit -- -m "feat: update configuration" 
-chezmoi git push
-```
-
-### Multiple Machines Sync
-```bash
-# On machine A: make changes and push
-chezmoi edit ~/.zshrc
-chezmoi cd
-git push
-
-# On machine B: pull and apply
-chezmoi update
-```
-
-## 🔗 Useful Links
-
-- [Chezmoi Documentation](https://www.chezmoi.io/)
-- [Template Functions Reference](https://www.chezmoi.io/reference/templates/)
-- [Starship Configuration](https://starship.rs/config/)
-- [Oh My Zsh Plugins](https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins)
+The bootstrap never updates Neovim plugins or Mason tools. Update those from
+inside Neovim only when desired.

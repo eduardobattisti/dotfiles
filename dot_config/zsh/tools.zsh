@@ -22,12 +22,7 @@ if [[ -d "$NVM_DIR" ]]; then
   }
 fi
 
-# Bun
-export BUN_INSTALL="$HOME/.bun"
-[[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
-
-# Fly.io
-export FLYCTL_INSTALL="$HOME/.fly"
-
 # Starship prompt (should be last — after all PATH and env changes)
-eval "$(starship init zsh)"
+if (( $+commands[starship] )); then
+  eval "$(starship init zsh)"
+fi

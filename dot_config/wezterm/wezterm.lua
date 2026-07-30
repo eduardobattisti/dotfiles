@@ -40,7 +40,7 @@ config.webgpu_power_preference = "HighPerformance"
 -- Font configuration (closest installed option to Zed style)
 config.font = wezterm.font_with_fallback({
 	{
-		family = "IBM Plex Mono",
+		family = "BlexMono Nerd Font Mono",
 		weight = "Regular",
 		harfbuzz_features = {
 			"calt=1", -- Contextual alternates (ligatures)
@@ -48,8 +48,7 @@ config.font = wezterm.font_with_fallback({
 			"liga=1", -- Standard ligatures
 		},
 	},
-	{ family = "JetBrains Mono", weight = "Regular" },
-	{ family = "Source Code Pro", weight = "Regular" },
+	{ family = "IBM Plex Mono", weight = "Regular" },
 	-- Emoji and symbol fallbacks
 	{ family = "Noto Color Emoji" },
 	{ family = "Segoe UI Emoji" }, -- Windows

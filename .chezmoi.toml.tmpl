@@ -1,24 +1,34 @@
-{{- $email := promptStringOnce . "email" "What is your email address" -}}
-{{- $nvimPath := promptStringOnce . "nvimPath" "What is your Neovim path" "/opt/nvim-linux64/bin" -}}
-{{- $useOhMyZsh := promptBoolOnce . "useOhMyZsh" "Do you use Oh My Zsh" true -}}
+{{- $profile := env "DOTFILES_PROFILE" | default "workstation" -}}
+{{- $email := env "DOTFILES_EMAIL" -}}
 
 [data]
     email = {{ $email | quote }}
-    useOhMyZsh = {{ $useOhMyZsh }}
-    
+    profile = {{ $profile | quote }}
+    useOhMyZsh = true
+
 [data.paths]
-    bun = "{{ .chezmoi.homeDir }}/.bun"
-    fly = "{{ .chezmoi.homeDir }}/.fly"
-    nvm = "{{ .chezmoi.homeDir }}/.nvm"
-    local_bin = "{{ .chezmoi.homeDir }}/.local/bin"
-    oh_my_zsh = "{{ .chezmoi.homeDir }}/.oh-my-zsh"
+    local_bin = {{ joinPath .chezmoi.homeDir ".local/bin" | quote }}
+    nvm = {{ joinPath .chezmoi.homeDir ".nvm" | quote }}
+    oh_my_zsh = {{ joinPath .chezmoi.homeDir ".oh-my-zsh" | quote }}
 
 [data.development]
-    nvim_path = {{ $nvimPath | quote }}
-    
+    nvim_path = {{ joinPath .chezmoi.homeDir ".local/bin" | quote }}
+
+{{- if eq .chezmoi.os "windows" }}
+[edit]
+    command = "notepad.exe"
+
+[diff]
+    command = "git"
+    args = ["diff", "--no-index"]
+
+[merge]
+    command = "git"
+    args = ["merge-file"]
+{{- else }}
 [edit]
     command = "nvim"
-    
+
 [diff]
     command = "nvim"
     args = ["-d"]
@@ -26,3 +36,4 @@
 [merge]
     command = "nvim"
     args = ["-d"]
+{{- end }}

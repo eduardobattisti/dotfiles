@@ -47,8 +47,8 @@ commandTemplates:
   serviceTop: "{{ .DockerCompose }} top {{ .Service.Name }}"
 
 oS:
-  openCommand: xdg-open {{filename}}
-  openLinkCommand: xdg-open {{link}}
+  openCommand: dotfiles-open {{filename}}
+  openLinkCommand: dotfiles-open {{link}}
 
 stats:
   graphs:
