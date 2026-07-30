@@ -11,12 +11,57 @@
 # Environment and secrets
 **/.env
 **/.env.*
+**/*.env
+**/*.env.*
+**/.envrc
+**/.envrc.*
+**/.secrets
+**/.secrets.*
 **/secrets.*
+**/.credentials
+**/.credentials.*
+**/credentials
+**/credentials.*
 **/private_*/**
 **/*_key
 **/*_secret
 **/*_token
 **/*_password
+**/*-credentials.json
+**/*_credentials.json
+**/*-service-account.json
+**/*_service_account.json
+**/service-account*.json
+
+# Private keys and certificate bundles
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/id_rsa
+**/id_dsa
+**/id_ecdsa
+**/id_ed25519
+**/.ssh/**
+**/.gnupg/**
+
+# Authentication and cloud-provider state
+**/.netrc
+**/.npmrc
+**/.pypirc
+**/.docker/config.json
+**/.aws/credentials
+**/.azure/**
+**/.config/gcloud/application_default_credentials.json
+**/.kube/config
+**/auth.json
+**/token.json
+
+# Local infrastructure variables commonly containing credentials
+**/*.tfvars
+**/*.tfvars.json
 
 # Logs and temporary files
 **/logs/
