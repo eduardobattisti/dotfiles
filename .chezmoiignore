@@ -55,6 +55,7 @@
 **/.aws/credentials
 **/.azure/**
 **/.config/gcloud/application_default_credentials.json
+**/github-copilot/apps.json
 **/.kube/config
 **/auth.json
 **/token.json

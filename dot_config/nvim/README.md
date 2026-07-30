@@ -55,9 +55,43 @@ nvim/
 ## AI workflow (CLI + in-editor)
 
 - CLI agents handle prompts, analysis, refactoring, and other assisted tasks.
-- Neovim keeps only `copilot.lua` for optional inline suggestions.
-- Accept a suggestion with `Alt+l`, cycle with `Alt+]`/`Alt+[`, and dismiss
-  with `Ctrl+]`. Use `:Copilot disable` or `:Copilot enable` as needed.
+- Neovim uses GitHub Copilot or
+  [Minuet](https://github.com/milanglacier/minuet-ai.nvim) only for inline
+  suggestions. Chat and agent panels remain CLI-only.
+- Suggestions are manual by default. Use `Alt+]`/`Alt+[` to request or cycle,
+  `Alt+l` to accept, and `Ctrl+]` to dismiss.
+
+Select a backend per machine in the unmanaged `~/.config/zsh/.secrets` file:
+
+```sh
+# GitHub Copilot (default)
+export NVIM_AI_PROVIDER=copilot
+
+# Or one of: openai, claude, gemini, codestral, openai_compatible,
+# openai_fim_compatible, ollama, none
+export NVIM_AI_PROVIDER=gemini
+export GEMINI_API_KEY='machine-local-secret'
+
+# Optional: automatically request suggestions while typing.
+export NVIM_AI_AUTO_TRIGGER=1
+```
+
+Built-in Minuet providers read their standard environment variables:
+`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, or
+`CODESTRAL_API_KEY`. For an OpenAI-compatible service, configure:
+
+```sh
+export NVIM_AI_PROVIDER=openai_compatible
+export NVIM_AI_API_KEY_ENV=OPENROUTER_API_KEY
+export OPENROUTER_API_KEY='machine-local-secret'
+export NVIM_AI_ENDPOINT='https://openrouter.ai/api/v1/chat/completions'
+export NVIM_AI_MODEL='provider/model-name'
+export NVIM_AI_PROVIDER_NAME=OpenRouter
+```
+
+`NVIM_AI_API_KEY_ENV` contains the name of the key variable, never the key
+itself. Restart Neovim after changing backends. Within a running Minuet session,
+`:Minuet change_model` can select another configured model.
 
 ## Credits & Inspiration
 
