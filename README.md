@@ -105,6 +105,48 @@ Useful options:
   applying them.
 - `--install-only` fills missing items without upgrading existing versions.
 
+## Per-machine inline AI
+
+Neovim keeps AI assistance limited to inline suggestions. GitHub Copilot is the
+default backend; Minuet provides OpenAI, Claude, Gemini, Codestral, Ollama, and
+OpenAI-compatible backends. Chat and agent workflows remain in the CLI.
+
+Choose a backend independently on each machine in the unmanaged
+`~/.config/zsh/.secrets` file:
+
+```sh
+# Default: authenticate inside Neovim with :Copilot auth
+export NVIM_AI_PROVIDER=copilot
+
+# Example alternative
+export NVIM_AI_PROVIDER=gemini
+export GEMINI_API_KEY='machine-local-secret'
+
+# Optional; suggestions are manual unless this is enabled.
+export NVIM_AI_AUTO_TRIGGER=1
+```
+
+Valid provider values are `copilot`, `openai`, `claude`, `gemini`, `codestral`,
+`openai_compatible`, `openai_fim_compatible`, `ollama`, and `none`. Compatible
+endpoints can additionally use `NVIM_AI_API_KEY_ENV`, `NVIM_AI_ENDPOINT`,
+`NVIM_AI_MODEL`, and `NVIM_AI_PROVIDER_NAME`.
+
+Never place an API key directly in a managed file. `.chezmoiignore` excludes
+`.secrets`, dotenv files, private keys, common credential stores, and Copilot's
+local authentication file.
+
+After changing providers:
+
+```sh
+source ~/.zshrc
+chezmoi apply ~/.config/nvim
+```
+
+Restart Neovim. Use `Alt+]`/`Alt+[` to request or cycle suggestions, `Alt+l` to
+accept, and `Ctrl+]` to dismiss. See
+[dot_config/nvim/README.md](dot_config/nvim/README.md#ai-workflow-cli--in-editor)
+for compatible-endpoint and model examples.
+
 ## Platform behavior
 
 - Debian, Ubuntu, Pop!_OS, and Ubuntu-based WSL distributions are supported.
