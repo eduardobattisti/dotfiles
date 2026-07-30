@@ -224,6 +224,10 @@ local function get_launch_menu()
 		args = { "lazygit" },
 	})
 	table.insert(menu, {
+		label = "LazyDocker",
+		args = { "lazydocker" },
+	})
+	table.insert(menu, {
 		label = "System Monitor",
 		args = (platform and platform.is_windows) and { "btop" } or { "btop" },
 	})

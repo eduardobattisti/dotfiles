@@ -63,6 +63,10 @@ local function get_process(tab)
 			{ Foreground = { Color = colors.purple } },
 			{ Text = "󰊢" },
 		},
+		["lazydocker"] = {
+			{ Foreground = { Color = colors.blue } },
+			{ Text = "󰡨" },
+		},
 		["lua"] = {
 			{ Foreground = { Color = colors.blue } },
 			{ Text = "" },

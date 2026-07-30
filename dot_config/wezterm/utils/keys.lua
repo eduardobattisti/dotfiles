@@ -357,6 +357,15 @@ Keys.keys = {
 		end),
 	},
 	{
+		key = "d",
+		mods = "LEADER",
+		action = wezterm.action_callback(function(window, pane)
+			safe_call(function()
+				window:perform_action(act.SpawnCommandInNewTab({ args = { "lazydocker" } }), pane)
+			end)
+		end),
+	},
+	{
 		key = "f",
 		mods = "LEADER",
 		action = wezterm.action_callback(function(window, pane)
@@ -388,6 +397,7 @@ Keys.keys = {
 	-- Project and directory navigation
 	{ key = "o", mods = "LEADER", action = project_launcher() },
 	{ key = "D", mods = "LEADER|SHIFT", action = quick_select_directory() },
+	{ key = "y", mods = "LEADER", action = act.QuickSelect },
 
 	-- Enhanced copy/search mode
 	{ key = "Space", mods = "LEADER", action = enter_copy_mode() },
