@@ -10,17 +10,16 @@ gui:
   returnImmediately: false
   wrapMainPanel: true
 
-  # Everforest Dark Medium theme (unified with Zed, WezTerm, Lazygit)
   theme:
     activeBorderColor:
-      - "#7fbbb3"
+      - "#7daea3"
       - bold
     inactiveBorderColor:
-      - "#9da9a0"
+      - "#928374"
     selectedLineBgColor:
-      - "#3c474d"
+      - "#3c3836"
     optionsTextColor:
-      - "#7fbbb3"
+      - "#7daea3"
 
 logs:
   timestamps: true
@@ -46,7 +45,7 @@ commandTemplates:
   checkDockerComposeConfig: "{{ .DockerCompose }} config --quiet"
   serviceTop: "{{ .DockerCompose }} top {{ .Service.Name }}"
 
-oS:
+os:
   openCommand: dotfiles-open {{filename}}
   openLinkCommand: dotfiles-open {{link}}
 

@@ -26,37 +26,36 @@ gui:
   statusPanelView: dashboard
   filterMode: substring
 
-  # Everforest Dark Medium (unified with Zed, WezTerm, Lazydocker)
   theme:
     activeBorderColor:
-      - "#7fbbb3"
+      - "#7daea3"
       - bold
     inactiveBorderColor:
-      - "#9da9a0"
+      - "#928374"
     searchingActiveBorderColor:
-      - "#dbbc7f"
+      - "#d8a657"
       - bold
     optionsTextColor:
-      - "#7fbbb3"
+      - "#7daea3"
     selectedLineBgColor:
-      - "#3c474d"
+      - "#3c3836"
     inactiveViewSelectedLineBgColor:
       - bold
     cherryPickedCommitFgColor:
-      - "#7fbbb3"
+      - "#a9b665"
     cherryPickedCommitBgColor:
-      - "#475258"
+      - "#45403d"
     markedBaseCommitFgColor:
-      - "#a7c080"
+      - "#a9b665"
     markedBaseCommitBgColor:
-      - "#475258"
+      - "#45403d"
     unstagedChangesColor:
-      - "#e67e80"
+      - "#ea6962"
     defaultFgColor:
-      - "#d3c6aa"
+      - "#d4be98"
 
   authorColors:
-    "*": "#7fbbb3"
+    "*": "#7daea3"
 
 os:
   editPreset: nvim-remote
