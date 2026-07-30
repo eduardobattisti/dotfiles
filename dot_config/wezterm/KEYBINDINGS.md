@@ -12,6 +12,7 @@ To send Ctrl+A to the terminal itself, use **Leader + Ctrl+A**
 | Key Combination | Action |
 |----------------|--------|
 | `Leader + g` | Open LazyGit |
+| `Leader + d` | Open Lazydocker |
 | `Leader + f` | Open Ranger (file manager) |
 | `Leader + m` | Open btop (system monitor) |
 | `Leader + v` | Open Neovim |
@@ -90,8 +91,6 @@ To send Ctrl+A to the terminal itself, use **Leader + Ctrl+A**
 
 | Key Combination | Action |
 |----------------|--------|
-| `Ctrl + u` | Scroll up half page |
-| `Ctrl + d` | Scroll down half page |
 | `Ctrl+Alt + k` | Scroll up 3 lines |
 | `Ctrl+Alt + j` | Scroll down 3 lines |
 | `Ctrl + Home` | Scroll to top |
@@ -113,8 +112,8 @@ To send Ctrl+A to the terminal itself, use **Leader + Ctrl+A**
 
 | Key Combination | Action |
 |----------------|--------|
-| `Ctrl + V` | Paste from clipboard |
-| `Ctrl + C` | Copy to clipboard |
+| `Ctrl+Shift + V` | Paste from clipboard |
+| `Ctrl+Shift + C` | Copy to clipboard |
 
 ---
 
@@ -176,8 +175,8 @@ To send Ctrl+A to the terminal itself, use **Leader + Ctrl+A**
 
 | Action | Result |
 |--------|--------|
-| Triple click | Select semantic zone (word, URL, path) |
-| Right click | Context menu (copy if selection, paste if none) |
+| Triple click | Select and copy the current line |
+| Right click | Copy selection, or paste when nothing is selected |
 | Ctrl + click | Open link |
 
 ---
@@ -200,17 +199,6 @@ To send Ctrl+A to the terminal itself, use **Leader + Ctrl+A**
 
 ---
 
-## 🔄 Fallback Options
-
-If the enhanced key bindings module fails to load, the configuration automatically falls back to basic key bindings:
-
-- `Leader + c` - New tab
-- `Leader + x` - Close pane
-- `Ctrl + V` - Paste
-- Arrow key navigation with `Ctrl+Shift`
-
----
-
 ## 📂 Configuration Structure
 
 ```
@@ -218,11 +206,14 @@ If the enhanced key bindings module fails to load, the configuration automatical
 ├── wezterm.lua           # Main configuration
 ├── utils/
 │   ├── keys.lua         # Enhanced key bindings
+│   ├── platform.lua     # OS, WSL, path, and session helpers
 │   ├── status.lua       # Enhanced status bar
 │   ├── tab.lua          # Tab customization
 │   └── theme.lua        # Color theme
-├── validate_config.lua   # Configuration validator
+├── wezterm-session-manager/
+│   └── session-manager.lua
 └── KEYBINDINGS.md       # This file
 ```
 
-Run `wezterm --config-file validate_config.lua start` to validate your configuration.
+Use `F5` inside WezTerm to reload the configuration and `F12` to inspect the
+debug overlay if a module fails to load.
