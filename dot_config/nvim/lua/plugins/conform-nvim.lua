@@ -1,3 +1,10 @@
+local function prettier_unless_eslint(bufnr)
+  if #vim.lsp.get_clients { bufnr = bufnr, name = 'eslint' } > 0 then
+    return {}
+  end
+  return { 'prettierd', 'prettier', stop_after_first = true }
+end
+
 return { -- Autoformat
   'stevearc/conform.nvim',
   event = { 'BufReadPre', 'BufNewFile' },
@@ -35,11 +42,11 @@ return { -- Autoformat
     formatters_by_ft = {
       lua = { 'stylua' },
       php = { 'phpcbf' },
-      javascript = { 'prettierd', 'prettier', stop_after_first = true },
-      typescript = { 'prettierd', 'prettier', stop_after_first = true },
-      javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
-      typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
-      vue = { 'prettierd', 'prettier', stop_after_first = true },
+      javascript = prettier_unless_eslint,
+      typescript = prettier_unless_eslint,
+      javascriptreact = prettier_unless_eslint,
+      typescriptreact = prettier_unless_eslint,
+      vue = prettier_unless_eslint,
       json = { 'prettierd', 'prettier', stop_after_first = true },
       jsonc = { 'prettierd', 'prettier', stop_after_first = true },
       html = { 'prettierd', 'prettier', stop_after_first = true },

@@ -105,7 +105,6 @@ return {
           vim_item.kind = string.format('%s %s', kind_icons[vim_item.kind] or '', vim_item.kind)
           vim_item.menu = ({
             nvim_lsp = '[LSP]',
-            copilot = '[AI]',
             luasnip = '[Snip]',
             buffer = '[Buf]',
             path = '[Path]',
@@ -155,7 +154,6 @@ return {
       },
       sources = cmp.config.sources({
         { name = 'nvim_lsp', priority = 1000 },
-        { name = 'copilot', priority = 900 },
         { name = 'luasnip', priority = 750 },
       }, {
         { name = 'path', priority = 500 },

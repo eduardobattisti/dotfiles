@@ -2,8 +2,6 @@ local lsp_utils = require 'config.lsp.utils'
 
 local M = {}
 
-local LSP_BORDER = 'rounded'
-
 local TS_JS_CONFIG = {
   updateImportsOnFileMove = { enabled = 'always' },
   suggest = {
@@ -30,11 +28,6 @@ local vue_plugin = {
 }
 
 local handlers = {
-  ['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, {
-    silent = true,
-    border = LSP_BORDER,
-  }),
-  ['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = LSP_BORDER }),
   ['textDocument/definition'] = function(err, result, method, ...)
     vim.lsp.handlers['textDocument/definition'](err, result, method, ...)
   end,

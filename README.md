@@ -11,7 +11,7 @@ that keeps their applications present and current.
 |---|---|
 | Shell | Zsh, Oh My Zsh, Starship, lazy-loaded NVM, completions, aliases, keybindings, and a minimal Bash fallback |
 | Terminal | WezTerm with Gruvbox Material, BlexMono Nerd Font, smart pane navigation, workspaces, layouts, status/tab modules, and session persistence |
-| Editor | Neovim with lazy.nvim, Treesitter, Telescope, completion, formatting/linting, DAP, Mason/LSP, PHP/Blade, TypeScript/Vue, Tailwind, and conditional AI integrations |
+| Editor | Neovim with lazy.nvim, Treesitter, Telescope, completion, formatting/linting, DAP, Mason/LSP, PHP/Blade, TypeScript/Vue, Tailwind, and optional inline Copilot suggestions |
 | Git and containers | Lazygit, Docker Engine/Compose or Docker Desktop under WSL, and Lazydocker |
 | Desktop | Logseq and Flameshot; Logseq graphs and application state remain unmanaged |
 | CLI utilities | Git, ripgrep, fd, fzf, bat, jq, ranger, btop, build tools, and clipboard providers |

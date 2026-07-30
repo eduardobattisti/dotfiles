@@ -65,18 +65,7 @@ function M.setup()
     severity_sort = true,
   }
 
-  -- Configure hover and signature help handlers
-  vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, {
-    border = M.get_border(),
-    silent = true,
-    focusable = false,
-  })
-
-  vim.lsp.handlers['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-    border = M.get_border(),
-    silent = true,
-    focusable = false,
-  })
+  vim.o.winborder = M.default_style
 
   -- Configure completion menu borders (if nvim-cmp is not handling it)
   vim.opt.pumblend = 10 -- Transparency for popup menu

@@ -21,7 +21,7 @@ return {
     options = {
       icons_enabled = true,
       disabled_filetypes = {
-        statusline = { 'neo-tree', 'alpha' },
+        statusline = { 'neo-tree', 'snacks_dashboard' },
       },
     },
   },

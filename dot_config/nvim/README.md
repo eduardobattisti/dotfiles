@@ -13,10 +13,10 @@ A modular, fast, and modern Neovim configuration.
 
 ## Getting Started
 
-1. **Install Neovim** (version >= 0.10 recommended)
-2. **Clone this repo** to your config directory:
+1. **Install Neovim** (version >= 0.11)
+2. **Apply the configuration through chezmoi:**
    ```sh
-   git clone <this-repo-url> ~/.config/nvim
+   chezmoi apply ~/.config/nvim
    ```
 3. **Start Neovim**
    The first launch will automatically install plugins.
@@ -54,9 +54,10 @@ nvim/
 
 ## AI workflow (CLI + in-editor)
 
-- **Copilot CLI / agents:** best for automação, análises amplas, refatorações em lote e tarefas orientadas a terminal.
-- **Avante/Copilot no Neovim:** melhor para edição contextual no buffer atual, pequenas iterações e prompts diretamente no código.
-- **Abordagem recomendada:** usar os dois de forma complementar (CLI para orquestração, plugin para edição local rápida).
+- CLI agents handle prompts, analysis, refactoring, and other assisted tasks.
+- Neovim keeps only `copilot.lua` for optional inline suggestions.
+- Accept a suggestion with `Alt+l`, cycle with `Alt+]`/`Alt+[`, and dismiss
+  with `Ctrl+]`. Use `:Copilot disable` or `:Copilot enable` as needed.
 
 ## Credits & Inspiration
 

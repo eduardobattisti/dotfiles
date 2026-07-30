@@ -9,6 +9,9 @@ return {
 
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
     { 'folke/lazydev.nvim', ft = 'lua', opts = {} },
+
+    -- JSON/YAML schema catalogue for jsonls/yamlls
+    'b0o/schemastore.nvim',
   },
 
   config = function()
@@ -31,7 +34,7 @@ return {
         lsp_utils.keymap('<leader>lk', vim.lsp.buf.signature_help, event.buf, 'Signature Help')
 
         -- LSP status check for debugging
-        lsp_utils.keymap('<leader>li', '<cmd>LspInfo<cr>', event.buf, 'LSP [I]nfo')
+        lsp_utils.keymap('<leader>li', '<cmd>checkhealth vim.lsp<cr>', event.buf, 'LSP [I]nfo')
         lsp_utils.keymap('<leader>ls', function()
           local clients = vim.lsp.get_clients { bufnr = event.buf }
           if #clients == 0 then
@@ -113,7 +116,6 @@ return {
     -- You can add other tools here that you want Mason to install
     -- for you, so that they are available from within Neovim.
     local ensure_installed = {
-      'biome',
       'phpcbf',
       'phpcs',
       'markdownlint',
@@ -127,6 +129,9 @@ return {
       'intelephense',
       'vue_ls',
       'vtsls',
+      'tailwindcss',
+      'jsonls',
+      'yamlls',
     }
 
     -- Install tools with mason-tool-installer
@@ -141,24 +146,21 @@ return {
       contentFormat = { 'markdown', 'plaintext' },
     }
 
-    -- Define global handlers for all servers
-    local handlers = {
-      ['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, {
-        silent = true,
-        border = 'rounded',
-      }),
-      ['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = 'rounded' }),
-    }
+    local handlers = {}
 
     require('mason-lspconfig').setup {
       ensure_installed = {
         'cssls',
         'css_variables',
         'emmet_ls',
+        'eslint',
         'html',
         'intelephense',
         'vue_ls',
         'vtsls',
+        'tailwindcss',
+        'jsonls',
+        'yamlls',
       },
       automatic_enable = {
         exclude = { 'ts_ls' },
@@ -182,12 +184,32 @@ return {
       })
     )
 
+    local base_eslint_on_attach = vim.lsp.config.eslint and vim.lsp.config.eslint.on_attach
+    local eslint_fix_group = vim.api.nvim_create_augroup('eslint-fix-on-save', { clear = true })
+
+    vim.lsp.config(
+      'eslint',
+      vim.tbl_deep_extend('force', default_config, {
+        on_attach = function(client, bufnr)
+          if base_eslint_on_attach then
+            base_eslint_on_attach(client, bufnr)
+          end
+          vim.api.nvim_create_autocmd('BufWritePre', {
+            group = eslint_fix_group,
+            buffer = bufnr,
+            command = 'LspEslintFixAll',
+          })
+        end,
+      })
+    )
+
     vim.lsp.config('cssls', default_config)
 
     vim.lsp.config('css_variables', default_config)
 
     vim.lsp.config('emmet_ls', vim.tbl_deep_extend('force', default_config, {
-      filetypes = { 'html', 'css', 'scss', 'javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'vue', 'blade' },
+      -- Keep Emmet out of plain JS/TS so it doesn't suggest tag snippets in server-side code.
+      filetypes = { 'html', 'css', 'scss', 'javascriptreact', 'typescriptreact', 'vue', 'blade' },
     }))
 
     vim.lsp.config('tailwindcss', {
@@ -197,6 +219,30 @@ return {
       on_attach = require('config.lsp.servers.tailwindcss').on_attach,
       settings = require('config.lsp.servers.tailwindcss').settings,
     })
+
+    vim.lsp.config(
+      'jsonls',
+      vim.tbl_deep_extend('force', default_config, {
+        settings = {
+          json = {
+            schemas = require('schemastore').json.schemas(),
+            validate = { enable = true },
+          },
+        },
+      })
+    )
+
+    vim.lsp.config(
+      'yamlls',
+      vim.tbl_deep_extend('force', default_config, {
+        settings = {
+          yaml = {
+            schemaStore = { enable = false, url = '' },
+            schemas = require('schemastore').yaml.schemas(),
+          },
+        },
+      })
+    )
 
     vim.lsp.config(
       'intelephense',
