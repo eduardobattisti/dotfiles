@@ -18,6 +18,18 @@ assert_contains() {
   fi
 }
 
+assert_not_contains() {
+  local output="$1"
+  local unexpected="$2"
+  local name="$3"
+  if printf '%s' "$output" | grep -Fq -- "$unexpected"; then
+    printf 'not ok - %s (unexpected: %s)\n' "$name" "$unexpected"
+    FAILURES=$((FAILURES + 1))
+  else
+    printf 'ok - %s\n' "$name"
+  fi
+}
+
 bash -n "$INSTALLER"
 printf 'ok - installer has valid Bash syntax\n'
 assert_contains "$("$INSTALLER" --help)" "--install-only" "documents install-only mode"
@@ -41,11 +53,14 @@ assert_contains "$output" "os=linux distro=ubuntu arch=amd64 wsl=0" "detects Ubu
 assert_contains "$output" "apt-get install" "plans targeted APT reconciliation"
 assert_contains "$output" "BlexMono Nerd Font" "plans font reconciliation"
 assert_contains "$output" "IBMPlexMono.zip" "uses the Nerd Fonts IBM Plex Mono release asset"
+assert_not_contains "$output" "/BlexMono.zip" "does not use the obsolete BlexMono archive name"
 assert_contains "$output" "com.logseq.Logseq" "plans Logseq reconciliation"
 assert_contains "$output" "Docker Engine" "plans native Docker reconciliation"
 
 assert_contains "$(cat "$ROOT/scripts/windows-host.ps1")" "/IBMPlexMono.zip" \
   "uses the Nerd Fonts IBM Plex Mono release asset on Windows"
+assert_not_contains "$(cat "$ROOT/scripts/windows-host.ps1")" '"BlexMono.zip"' \
+  "does not use the obsolete BlexMono archive name on Windows"
 
 output="$(
   DOTFILES_TEST_MODE=1 \

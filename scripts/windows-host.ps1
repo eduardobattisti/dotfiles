@@ -87,7 +87,7 @@ if (-not $fontCurrent -and (-not $InstallOnly -or -not (Test-Path $fontMarker)))
         $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("dotfiles-font-" + [Guid]::NewGuid())
         New-Item -ItemType Directory -Path $tempDir | Out-Null
         try {
-            $archive = Join-Path $tempDir "BlexMono.zip"
+            $archive = Join-Path $tempDir "IBMPlexMono.zip"
             Invoke-WebRequest `
                 "https://github.com/ryanoasis/nerd-fonts/releases/download/v$fontVersion/IBMPlexMono.zip" `
                 -OutFile $archive

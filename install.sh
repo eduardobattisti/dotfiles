@@ -522,8 +522,8 @@ ensure_nerd_font() {
   fi
 
   ensure_tmp_root
-  local archive="$TMP_ROOT/BlexMono.zip"
-  local extract_dir="$TMP_ROOT/BlexMono"
+  local archive="$TMP_ROOT/IBMPlexMono.zip"
+  local extract_dir="$TMP_ROOT/IBMPlexMono"
   download "https://github.com/ryanoasis/nerd-fonts/releases/download/${tag}/IBMPlexMono.zip" "$archive"
   run mkdir -p "$font_dir" "$extract_dir"
   run unzip -q -o "$archive" -d "$extract_dir"
