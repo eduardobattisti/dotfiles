@@ -288,9 +288,12 @@ ensure_home_dirs() {
 ensure_linux_packages() {
   local packages=(
     ca-certificates curl git zsh build-essential make unzip tar xz-utils
-    ripgrep fd-find fzf bat jq fontconfig flatpak wl-clipboard xclip gnupg
+    ripgrep fd-find fzf bat jq fontconfig wl-clipboard xclip gnupg
     ranger
   )
+  if [ "$IS_WSL" -eq 0 ]; then
+    packages+=(flatpak)
+  fi
   if [ "$PROFILE" = "workstation" ]; then
     packages+=(php-cli php-mbstring php-xml php-curl btop flameshot)
   fi
@@ -713,15 +716,15 @@ ensure_wezterm_linux() {
 }
 
 ensure_logseq_linux() {
-  if flatpak info com.logseq.Logseq >/dev/null 2>&1; then
+  if flatpak --user info com.logseq.Logseq >/dev/null 2>&1; then
     record_current "flatpak:com.logseq.Logseq"
     if [ "$INSTALL_ONLY" -eq 0 ]; then
-      run flatpak update -y com.logseq.Logseq
+      run flatpak --user update -y com.logseq.Logseq
     fi
   else
     record_missing "flatpak:com.logseq.Logseq"
-    run flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-    run flatpak install -y flathub com.logseq.Logseq
+    run flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    run flatpak --user install -y flathub com.logseq.Logseq
   fi
 }
 
@@ -901,9 +904,11 @@ main() {
   if [ "$OS" = "linux" ]; then
     ensure_neovim_linux
     ensure_github_binaries_linux
-    ensure_nerd_font
-    ensure_wezterm_linux
-    ensure_logseq_linux
+    if [ "$IS_WSL" -eq 0 ]; then
+      ensure_nerd_font
+      ensure_wezterm_linux
+      ensure_logseq_linux
+    fi
     ensure_docker_linux
   else
     # Homebrew owns application and CLI upgrades on macOS; the font remains a

@@ -54,6 +54,7 @@ assert_contains "$output" "apt-get install" "plans targeted APT reconciliation"
 assert_contains "$output" "BlexMono Nerd Font" "plans font reconciliation"
 assert_contains "$output" "IBMPlexMono.zip" "uses the Nerd Fonts IBM Plex Mono release asset"
 assert_not_contains "$output" "/BlexMono.zip" "does not use the obsolete BlexMono archive name"
+assert_contains "$output" "flatpak --user remote-add" "uses a user-scoped Flatpak remote"
 assert_contains "$output" "com.logseq.Logseq" "plans Logseq reconciliation"
 assert_contains "$output" "Docker Engine" "plans native Docker reconciliation"
 
@@ -73,6 +74,9 @@ output="$(
 )"
 assert_contains "$output" "arch=arm64 wsl=1" "detects WSL arm64"
 assert_contains "$output" "Windows GUI apps manually" "reports unavailable host bridge in isolated test"
+assert_not_contains "$output" "flatpak" "does not install Flatpak applications inside WSL"
+assert_not_contains "$output" "apt.fury.io/wez" "does not install Linux WezTerm inside WSL"
+assert_not_contains "$output" "IBMPlexMono.zip" "does not install the terminal font inside WSL"
 
 output="$(
   DOTFILES_TEST_MODE=1 \
