@@ -34,8 +34,9 @@ end
 -- APPEARANCE & THEME
 -- ===========================
 
-config.front_end = "WebGpu" -- More efficient than OpenGL
-config.webgpu_power_preference = "HighPerformance"
+-- OpenGL is more stable than WebGPU when Windows/FancyZones moves the window
+-- between monitors with different adapters or display scaling.
+config.front_end = "OpenGL"
 
 -- Font configuration (closest installed option to Zed style)
 config.font = wezterm.font_with_fallback({
