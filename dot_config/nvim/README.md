@@ -55,19 +55,15 @@ nvim/
 ## AI workflow (CLI + in-editor)
 
 - CLI agents handle prompts, analysis, refactoring, and other assisted tasks.
-- Neovim uses GitHub Copilot or
-  [Minuet](https://github.com/milanglacier/minuet-ai.nvim) only for inline
-  suggestions. Chat and agent panels remain CLI-only.
+- Neovim uses [Minuet](https://github.com/milanglacier/minuet-ai.nvim) only for
+  inline suggestions. Chat and agent panels remain CLI-only.
 - Suggestions are manual by default. Use `Alt+]`/`Alt+[` to request or cycle,
   `Alt+l` to accept, and `Ctrl+]` to dismiss.
 
 Select a backend per machine in the unmanaged `~/.config/zsh/.secrets` file:
 
 ```sh
-# GitHub Copilot (default)
-export NVIM_AI_PROVIDER=copilot
-
-# Or one of: openai, claude, gemini, codestral, openai_compatible,
+# One of: openai, claude, gemini, codestral, openai_compatible,
 # openai_fim_compatible, ollama, none
 export NVIM_AI_PROVIDER=gemini
 export GEMINI_API_KEY='machine-local-secret'

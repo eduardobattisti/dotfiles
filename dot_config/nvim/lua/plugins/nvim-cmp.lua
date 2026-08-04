@@ -62,7 +62,6 @@ return {
       Event = '',
       Operator = '󰆕',
       TypeParameter = '',
-      Copilot = '',
     }
 
     cmp.setup {
@@ -206,6 +205,5 @@ return {
     vim.api.nvim_set_hl(0, 'CmpItemKindKeyword', { fg = '#D4D4D4' })
     vim.api.nvim_set_hl(0, 'CmpItemKindProperty', { fg = '#D4D4D4' })
     vim.api.nvim_set_hl(0, 'CmpItemKindUnit', { fg = '#D4D4D4' })
-    vim.api.nvim_set_hl(0, 'CmpItemKindCopilot', { link = 'Special' })
   end,
 }

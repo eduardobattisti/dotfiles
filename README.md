@@ -107,18 +107,15 @@ Useful options:
 
 ## Per-machine inline AI
 
-Neovim keeps AI assistance limited to inline suggestions. GitHub Copilot is the
-default backend; Minuet provides OpenAI, Claude, Gemini, Codestral, Ollama, and
-OpenAI-compatible backends. Chat and agent workflows remain in the CLI.
+Neovim keeps AI assistance limited to inline suggestions. Minuet provides
+OpenAI, Claude, Gemini, Codestral, Ollama, and OpenAI-compatible backends. Chat
+and agent workflows remain in the CLI. Inline AI is disabled by default.
 
 Choose a backend independently on each machine in the unmanaged
 `~/.config/zsh/.secrets` file:
 
 ```sh
-# Default: authenticate inside Neovim with :Copilot auth
-export NVIM_AI_PROVIDER=copilot
-
-# Example alternative
+# Example
 export NVIM_AI_PROVIDER=gemini
 export GEMINI_API_KEY='machine-local-secret'
 
@@ -126,14 +123,13 @@ export GEMINI_API_KEY='machine-local-secret'
 export NVIM_AI_AUTO_TRIGGER=1
 ```
 
-Valid provider values are `copilot`, `openai`, `claude`, `gemini`, `codestral`,
+Valid provider values are `openai`, `claude`, `gemini`, `codestral`,
 `openai_compatible`, `openai_fim_compatible`, `ollama`, and `none`. Compatible
 endpoints can additionally use `NVIM_AI_API_KEY_ENV`, `NVIM_AI_ENDPOINT`,
 `NVIM_AI_MODEL`, and `NVIM_AI_PROVIDER_NAME`.
 
 Never place an API key directly in a managed file. `.chezmoiignore` excludes
-`.secrets`, dotenv files, private keys, common credential stores, and Copilot's
-local authentication file.
+`.secrets`, dotenv files, private keys, and common credential stores.
 
 After changing providers:
 

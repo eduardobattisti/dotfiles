@@ -1,4 +1,4 @@
-local provider = (vim.env.NVIM_AI_PROVIDER or 'copilot'):lower()
+local provider = (vim.env.NVIM_AI_PROVIDER or 'none'):lower()
 local auto_trigger_values = {
   ['1'] = true,
   ['on'] = true,
@@ -17,7 +17,7 @@ local minuet_providers = {
   openai_fim_compatible = true,
 }
 
-local supported = provider == 'copilot' or provider == 'none' or minuet_providers[provider]
+local supported = provider == 'none' or minuet_providers[provider]
 if not supported then
   vim.schedule(function()
     vim.notify(
@@ -84,37 +84,6 @@ local function minuet_options()
 end
 
 return {
-  {
-    'zbirenbaum/copilot.lua',
-    cond = provider == 'copilot',
-    cmd = 'Copilot',
-    event = 'InsertEnter',
-    opts = {
-      panel = {
-        enabled = false,
-      },
-      suggestion = {
-        enabled = true,
-        auto_trigger = auto_trigger,
-        debounce = 75,
-        keymap = {
-          accept = '<M-l>',
-          next = '<M-]>',
-          prev = '<M-[>',
-          dismiss = '<C-]>',
-        },
-      },
-      filetypes = {
-        yaml = false,
-        markdown = false,
-        help = false,
-        gitcommit = false,
-        gitrebase = false,
-        ['.'] = false,
-      },
-      copilot_node_command = 'node',
-    },
-  },
   {
     'milanglacier/minuet-ai.nvim',
     cond = minuet_providers[provider] == true,
