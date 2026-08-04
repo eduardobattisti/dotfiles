@@ -20,14 +20,20 @@ local theme = safe_require("utils.theme")
 local keys_module = safe_require("utils.keys")
 local status_module = safe_require("utils.status")
 
--- Cache WSL distros detection (called once, reused for launch menu and wsl_domains)
-local wsl_distros = (platform and platform.is_windows) and platform.detect_wsl_distros() or {}
+local windows_wsl_domain = "WSL:Ubuntu"
 
 -- Configuration object
 local config = {}
 
 if wezterm.config_builder then
 	config = wezterm.config_builder()
+end
+
+-- Keep the native Windows GUI while opening its shell directly in Ubuntu.
+-- WezTerm creates built-in WSL domains automatically, so no startup probe or
+-- custom WSL domain definition is needed here.
+if platform and platform.is_windows then
+	config.default_domain = windows_wsl_domain
 end
 
 -- ===========================
@@ -215,13 +221,10 @@ local function get_launch_menu()
 			args = { "cmd.exe" },
 		})
 
-		-- Add WSL distributions (using cached detection)
-		for _, distro in ipairs(wsl_distros) do
-			table.insert(menu, {
-				label = "WSL - " .. distro,
-				args = { "wsl.exe", "-d", distro },
-			})
-		end
+		table.insert(menu, {
+			label = "WSL - Ubuntu",
+			domain = { DomainName = windows_wsl_domain },
+		})
 	else
 		table.insert(menu, {
 			label = "Bash",
@@ -259,24 +262,6 @@ local function get_launch_menu()
 end
 
 config.launch_menu = get_launch_menu()
-
--- ===========================
--- WSL DOMAINS (Auto-detected on Windows)
--- ===========================
-
-if platform and platform.is_windows then
-	if #wsl_distros > 0 then
-		config.wsl_domains = {}
-		for _, distro in ipairs(wsl_distros) do
-			table.insert(config.wsl_domains, {
-				name = "WSL:" .. distro,
-				distribution = distro,
-				default_cwd = "~",
-			})
-		end
-		config.default_domain = "WSL:" .. wsl_distros[1]
-	end
-end
 
 -- ===========================
 -- EVENT HANDLERS

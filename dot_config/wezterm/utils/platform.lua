@@ -31,37 +31,6 @@ function Platform.shell_command(cmd)
 	return { "sh", "-c", cmd }
 end
 
--- Detect available WSL distributions (Windows only)
-function Platform.detect_wsl_distros()
-	local distros = {}
-
-	if not Platform.is_windows then
-		return distros
-	end
-
-	local success, output = pcall(function()
-		local handle = io.popen("wsl.exe --list --quiet 2>nul")
-		if not handle then
-			return ""
-		end
-		local result = handle:read("*a")
-		handle:close()
-		return result
-	end)
-
-	if success and output then
-		for line in output:gmatch("[^\r\n]+") do
-			-- Remove any Unicode BOM and trim whitespace
-			local distro = line:gsub("^%s*", ""):gsub("%s*$", ""):gsub("[\0-\31]", "")
-			if distro ~= "" then
-				table.insert(distros, distro)
-			end
-		end
-	end
-
-	return distros
-end
-
 -- Get appropriate Git executable for the platform
 function Platform.get_git_cmd()
 	if Platform.is_windows then
