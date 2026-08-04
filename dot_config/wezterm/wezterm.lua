@@ -66,7 +66,7 @@ config.window_background_opacity = 0.9
 config.window_padding = platform and platform.get_window_padding() or {}
 
 -- Better window management
-config.window_decorations = "RESIZE"
+config.window_decorations = (platform and platform.is_windows) and "TITLE|RESIZE" or "RESIZE"
 config.window_close_confirmation = "NeverPrompt"
 config.skip_close_confirmation_for_processes_named = {
 	"bash",
@@ -162,8 +162,9 @@ end
 -- MOUSE BINDINGS
 -- ===========================
 
--- Wayland clipboard workaround
-config.enable_wayland = true
+-- Wayland is only applicable to native Linux sessions. Keeping it disabled on
+-- Windows avoids mixing the Windows GUI backend with WSL/Wayland behavior.
+config.enable_wayland = not (platform and platform.is_windows)
 
 -- Normalize text copied from the Windows clipboard before sending it to WSL.
 config.canonicalize_pasted_newlines = "LineFeed"
@@ -297,8 +298,7 @@ if platform and platform.is_windows then
 				default_cwd = "~",
 			})
 		end
-		-- Optionally set first distro as default
-		-- config.default_domain = "WSL:" .. wsl_distros[1]
+		config.default_domain = "WSL:" .. wsl_distros[1]
 	end
 end
 
@@ -374,11 +374,6 @@ table.insert(config.hyperlink_rules, {
 
 -- Unicode and emoji support
 config.unicode_version = 14
-
--- DPI configuration (platform-specific)
-if platform and platform.is_windows then
-	config.dpi = 96
-end
 
 -- ===========================
 -- RETURN CONFIGURATION
