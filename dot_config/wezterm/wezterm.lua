@@ -120,40 +120,24 @@ else
 	config.keys = {}
 end
 
--- Use PowerShell as a Windows clipboard fallback. This follows the same path as
--- `powershell.exe -NoProfile -Command 'Get-Clipboard -Raw'`, which also works
--- when WezTerm's native clipboard reader cannot paste into a WSL pane.
+-- The native Windows WezTerm GUI owns the clipboard, including for WSL panes.
 local paste_from_clipboard = act.PasteFrom("Clipboard")
 
-if wezterm.target_triple:find("windows") then
-	paste_from_clipboard = wezterm.action_callback(function(window, pane)
-		local success, stdout, stderr = wezterm.run_child_process({
-			"powershell.exe",
-			"-NoProfile",
-			"-NonInteractive",
-			"-Command",
-			"[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); Get-Clipboard -Raw",
-		})
-
-		if success then
-			pane:send_paste(stdout:gsub("\r\n", "\n"):gsub("\r", "\n"))
-		else
-			wezterm.log_error("Failed to read the Windows clipboard: " .. tostring(stderr))
-			window:toast_notification("WezTerm", "Failed to read the Windows clipboard", nil, 4000)
-		end
-	end)
-end
-
 table.insert(config.keys, {
-	key = "phys:V",
+	key = "v",
 	mods = "CTRL|SHIFT",
 	action = paste_from_clipboard,
 })
 
 if platform and platform.is_windows then
 	table.insert(config.keys, {
-		key = "phys:V",
+		key = "v",
 		mods = "CTRL",
+		action = paste_from_clipboard,
+	})
+	table.insert(config.keys, {
+		key = "Insert",
+		mods = "SHIFT",
 		action = paste_from_clipboard,
 	})
 end
@@ -196,19 +180,11 @@ config.mouse_bindings = {
 		mods = "NONE",
 		action = act.CompleteSelection("Clipboard"),
 	},
-	-- Right click: copy if selection exists, otherwise paste
+	-- Right click pastes from the Windows clipboard into the active pane.
 	{
 		event = { Down = { streak = 1, button = "Right" } },
 		mods = "NONE",
-		action = wezterm.action_callback(function(window, pane)
-			local has_selection = window:get_selection_text_for_pane(pane) ~= ""
-			if has_selection then
-				window:perform_action(act.CopyTo("Clipboard"), pane)
-				window:perform_action(act.ClearSelection, pane)
-			else
-				window:perform_action(paste_from_clipboard, pane)
-			end
-		end),
+		action = paste_from_clipboard,
 	},
 	-- Ctrl+click opens links
 	{
