@@ -119,12 +119,32 @@ else
 	config.keys = {}
 end
 
+-- Keep clipboard paste available even when the optional keys module fails.
+local paste_from_clipboard = act.PasteFrom("Clipboard")
+
+table.insert(config.keys, {
+	key = "phys:V",
+	mods = "CTRL|SHIFT",
+	action = paste_from_clipboard,
+})
+
+if platform and platform.is_windows then
+	table.insert(config.keys, {
+		key = "phys:V",
+		mods = "CTRL",
+		action = paste_from_clipboard,
+	})
+end
+
 -- ===========================
 -- MOUSE BINDINGS
 -- ===========================
 
 -- Wayland clipboard workaround
 config.enable_wayland = true
+
+-- Normalize text copied from the Windows clipboard before sending it to WSL.
+config.canonicalize_pasted_newlines = "LineFeed"
 
 -- Selection behavior - automatically copy on select
 config.selection_word_boundary = " \t\n{}[]()\"'`,;:@"
@@ -134,7 +154,7 @@ config.mouse_bindings = {
 	{
 		event = { Up = { streak = 1, button = "Left" } },
 		mods = "NONE",
-		action = act.CompleteSelection("Clipboard"),
+		action = act.CompleteSelectionOrOpenLinkAtMouseCursor("Clipboard"),
 	},
 	-- Double-click select word and copy
 	{
