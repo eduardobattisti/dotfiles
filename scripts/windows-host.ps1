@@ -89,7 +89,7 @@ if (-not $fontCurrent -and (-not $InstallOnly -or -not (Test-Path $fontMarker)))
         try {
             $archive = Join-Path $tempDir "BlexMono.zip"
             Invoke-WebRequest `
-                "https://github.com/ryanoasis/nerd-fonts/releases/download/v$fontVersion/BlexMono.zip" `
+                "https://github.com/ryanoasis/nerd-fonts/releases/download/v$fontVersion/IBMPlexMono.zip" `
                 -OutFile $archive
             Expand-Archive $archive -DestinationPath $tempDir -Force
             $fontDirectory = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Fonts"

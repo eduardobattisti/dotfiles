@@ -524,7 +524,7 @@ ensure_nerd_font() {
   ensure_tmp_root
   local archive="$TMP_ROOT/BlexMono.zip"
   local extract_dir="$TMP_ROOT/BlexMono"
-  download "https://github.com/ryanoasis/nerd-fonts/releases/download/${tag}/BlexMono.zip" "$archive"
+  download "https://github.com/ryanoasis/nerd-fonts/releases/download/${tag}/IBMPlexMono.zip" "$archive"
   run mkdir -p "$font_dir" "$extract_dir"
   run unzip -q -o "$archive" -d "$extract_dir"
   if [ "$DRY_RUN" -eq 0 ] && [ "$TEST_MODE" -eq 0 ]; then

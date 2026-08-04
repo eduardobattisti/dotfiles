@@ -40,8 +40,12 @@ output="$(
 assert_contains "$output" "os=linux distro=ubuntu arch=amd64 wsl=0" "detects Ubuntu amd64"
 assert_contains "$output" "apt-get install" "plans targeted APT reconciliation"
 assert_contains "$output" "BlexMono Nerd Font" "plans font reconciliation"
+assert_contains "$output" "IBMPlexMono.zip" "uses the Nerd Fonts IBM Plex Mono release asset"
 assert_contains "$output" "com.logseq.Logseq" "plans Logseq reconciliation"
 assert_contains "$output" "Docker Engine" "plans native Docker reconciliation"
+
+assert_contains "$(cat "$ROOT/scripts/windows-host.ps1")" "/IBMPlexMono.zip" \
+  "uses the Nerd Fonts IBM Plex Mono release asset on Windows"
 
 output="$(
   DOTFILES_TEST_MODE=1 \
