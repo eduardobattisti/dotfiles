@@ -78,26 +78,51 @@ return {
       local keeper = require 'otter.keeper'
       if not keeper.blade_inline_columns then
         local extract_code_chunks = keeper.extract_code_chunks
-        keeper.extract_code_chunks = function(...)
-          local chunks_by_language = extract_code_chunks(...)
+        keeper.extract_code_chunks = function(main_bufnr, ...)
+          local chunks_by_language = extract_code_chunks(main_bufnr, ...)
           for _, chunk in ipairs(chunks_by_language.php_only or {}) do
             local row, column = chunk.range.from[1], chunk.range.from[2]
-            -- Captured Blade expressions do not include PHP statement
-            -- terminators; add one so adjacent projected regions still parse.
-            local last_line = #chunk.text
-            if chunk.text[last_line] and not chunk.text[last_line]:match '[;{}]%s*$' then
-              chunk.text[last_line] = chunk.text[last_line] .. ';'
+
+            -- A Blade directive parameter may be an argument list rather than
+            -- a standalone PHP expression. Wrap it in parseable synthetic PHP
+            -- while keeping the original expression at the same LSP column.
+            local source_line = vim.api.nvim_buf_get_lines(main_bufnr, row, row + 1, false)[1] or ''
+            local directive = source_line:sub(1, column):match '@([%a_][%w_]*)%s*%($'
+            local opening, closing = '', ';'
+            if directive then
+              local statement_wrappers = {
+                ['for'] = { 'for (', ') {}' },
+                foreach = { 'foreach (', ') {}' },
+                forelse = { 'foreach (', ') {}' },
+                ['while'] = { 'while (', ') {}' },
+                switch = { 'switch (', ') {}' },
+              }
+              local wrapper = statement_wrappers[directive:lower()]
+              if wrapper then
+                opening, closing = wrapper[1], wrapper[2]
+              else
+                opening, closing = '_b_(', ');'
+              end
             end
+
+            local last_line = #chunk.text
+            if chunk.text[last_line] then
+              chunk.text[last_line] = chunk.text[last_line] .. closing
+            end
+
             if row == 0 then
-              local shift = math.max(0, 6 - column)
-              chunk.text[1] = '<?php ' .. string.rep(' ', math.max(0, column - 6)) .. chunk.text[1]
+              local prefix = '<?php ' .. opening
+              local target_column = math.max(column, #prefix)
+              local shift = target_column - column
+              chunk.text[1] = prefix .. string.rep(' ', target_column - #prefix) .. chunk.text[1]
               for index = 2, #chunk.text do
                 chunk.text[index] = string.rep(' ', shift) .. chunk.text[index]
               end
-              chunk.leading_offset = column - 6
-            elseif column > 0 then
-              chunk.text[1] = string.rep(' ', column) .. chunk.text[1]
-              chunk.leading_offset = 0
+              chunk.leading_offset = column - target_column
+            else
+              local target_column = math.max(column, #opening)
+              chunk.text[1] = string.rep(' ', target_column - #opening) .. opening .. chunk.text[1]
+              chunk.leading_offset = column - target_column
             end
           end
           return chunks_by_language
