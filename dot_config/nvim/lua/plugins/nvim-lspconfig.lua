@@ -30,7 +30,7 @@ return {
         lsp_utils.keymap('<leader>lr', vim.lsp.buf.rename, event.buf, '[R]ename')
         lsp_utils.keymap('<leader>la', vim.lsp.buf.code_action, event.buf, '[C]ode [A]ction')
         lsp_utils.keymap('gD', vim.lsp.buf.declaration, event.buf, '[G]oto [D]eclaration')
-        lsp_utils.keymap('K', vim.lsp.buf.hover, event.buf, 'Hover Documentation')
+        lsp_utils.keymap('K', require('config.blade_hover').hover, event.buf, 'Hover Documentation')
         lsp_utils.keymap('<leader>lk', vim.lsp.buf.signature_help, event.buf, 'Signature Help')
 
         -- LSP status check for debugging
@@ -305,7 +305,10 @@ return {
       vim.tbl_deep_extend('force', default_config, {
         cmd = { laravel_lsp_command },
         filetypes = { 'php', 'blade' },
-        root_markers = { 'artisan', 'composer.json', '.git' },
+        -- The server rejects non-Laravel roots. Every standard Laravel app has
+        -- artisan, while composer.json/.git also occur in ordinary PHP repos.
+        root_markers = { 'artisan' },
+        workspace_required = true,
         init_options = {
           -- Auto-detect local PHP, Sail, Herd, Valet, Lando or DDEV.
           phpEnvironment = 'auto',

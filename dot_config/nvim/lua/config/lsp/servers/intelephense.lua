@@ -11,7 +11,10 @@ end
 
 local M = {}
 
-local filetypes = { 'php', 'blade', 'php_only' }
+-- Mixed Blade is projected to a clean `php_only` buffer by otter.nvim. Do not
+-- parse the complete Blade document as PHP: HTML/directives produce bogus
+-- syntax and prevent reliable hover and completion responses.
+local filetypes = { 'php', 'php_only' }
 
 local settings = {
   files = {
@@ -28,9 +31,8 @@ local settings = {
 M.settings = settings
 M.filetypes = filetypes
 M.get_language_id = function(_, filetype)
-  -- Intelephense only understands PHP language IDs. Keep the Blade filetype
-  -- for Tree-sitter while presenting mixed Blade templates as PHP to the LSP.
-  return filetype == 'blade' and 'php' or filetype
+  -- `php_only` is a Tree-sitter injection language, not an LSP language ID.
+  return filetype == 'php_only' and 'php' or filetype
 end
 
 return M

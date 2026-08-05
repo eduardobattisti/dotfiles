@@ -8,6 +8,8 @@ A modular, fast, and modern Neovim configuration.
 - LSP, Treesitter, autocompletion, and more
 - Official Laravel LSP plus Intelephense, Blade navigation/completion, Pint,
   Blade Formatter, Tailwind, Vue, PHPUnit, and Xdebug support
+- PHP completion, hover, signatures, and navigation inside Blade through
+  synchronized `otter.nvim` PHP projections
 - Modular structure for easy customization
 - Custom Treesitter queries
 - Health checks and diagnostics
@@ -30,6 +32,11 @@ without the bootstrap, install it manually:
 ```sh
 composer global require laravel/lsp
 ```
+
+In Blade files, `K` is context-aware: it documents common Blade directives,
+shows resolved BladeNav values, or forwards PHP hover requests to Intelephense
+through Otter. `<leader>lk` requests signature help for the PHP call under the
+cursor. Project-specific Blade directives still require their own documentation.
 
 ## Directory Structure
 
