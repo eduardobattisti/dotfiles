@@ -1,5 +1,6 @@
 {
   "LuaSnip": { "branch": "master", "commit": "0abc8f390b278c3b4aabc4c004ac8a088b65cf24" },
+  "blade-nav.nvim": { "branch": "main", "commit": "909825e2cfa5171867f2109f7cedc5e3e5d60956" },
   "cmp-buffer": { "branch": "main", "commit": "b74fab3656eea9de20a9b8116afa3cfc4ec09657" },
   "cmp-cmdline": { "branch": "main", "commit": "d126061b624e0af6c3a556428712dd4d4194ec6d" },
   "cmp-nvim-lsp": { "branch": "main", "commit": "cbc7b02bb99fae35cb42f514762b89b5126651ef" },
@@ -13,6 +14,7 @@
   "grug-far.nvim": { "branch": "main", "commit": "1cc080f55706b38aabfa97d40acb6adf59ac4a5a" },
   "gruvbox-material": { "branch": "master", "commit": "11d779b26a9ab2b3db8c22c6ac9fb6e8ed4fea79" },
   "kulala.nvim": { "branch": "main", "commit": "a9e17ae0236e886371671a7a9f01f070201a9cc1" },
+  "laravel.nvim": { "branch": "main", "commit": "c0b171c8f9f0b5914f12b197711b93aa2c4047d3" },
   "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
   "lazydev.nvim": { "branch": "main", "commit": "ff2cbcba459b637ec3fd165a2be59b7bbaeedf0d" },
   "lualine.nvim": { "branch": "master", "commit": "221ce6b2d999187044529f49da6554a92f740a96" },

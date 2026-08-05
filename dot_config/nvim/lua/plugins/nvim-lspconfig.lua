@@ -120,6 +120,7 @@ return {
       'phpcs',
       'markdownlint',
       'php-debug-adapter',
+      'blade-formatter',
       'prettierd',
       'stylua',
       'cssls',
@@ -127,6 +128,7 @@ return {
       'html',
       'emmet_ls',
       'intelephense',
+      'laravel-ls',
       'vue_ls',
       'vtsls',
       'tailwindcss',
@@ -156,6 +158,7 @@ return {
         'eslint',
         'html',
         'intelephense',
+        'laravel_ls',
         'vue_ls',
         'vtsls',
         'tailwindcss',
@@ -175,6 +178,10 @@ return {
     vim.lsp.config(
       'html',
       vim.tbl_deep_extend('force', default_config, {
+        filetypes = { 'html', 'blade' },
+        get_language_id = function(_, filetype)
+          return filetype == 'blade' and 'html' or filetype
+        end,
         on_attach = function(client, bufnr)
           local filetype = vim.api.nvim_get_option_value('filetype', { buf = bufnr })
           if filetype == 'vue' then
@@ -248,11 +255,16 @@ return {
       'intelephense',
       vim.tbl_deep_extend('force', default_config, {
         filetypes = require('config.lsp.servers.intelephense').filetypes,
+        get_language_id = require('config.lsp.servers.intelephense').get_language_id,
         settings = {
           intelephense = require('config.lsp.servers.intelephense').settings,
         },
       })
     )
+
+    -- Laravel-aware navigation and completion for views, routes, bindings,
+    -- assets and Blade components. Intelephense remains responsible for PHP.
+    vim.lsp.config('laravel_ls', default_config)
 
     vim.lsp.config('vtsls', {
       capabilities = capabilities,

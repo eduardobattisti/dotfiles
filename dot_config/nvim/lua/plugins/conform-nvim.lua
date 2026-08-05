@@ -42,6 +42,7 @@ return { -- Autoformat
     formatters_by_ft = {
       lua = { 'stylua' },
       php = { 'phpcbf' },
+      blade = { 'blade-formatter' },
       javascript = prettier_unless_eslint,
       typescript = prettier_unless_eslint,
       javascriptreact = prettier_unless_eslint,

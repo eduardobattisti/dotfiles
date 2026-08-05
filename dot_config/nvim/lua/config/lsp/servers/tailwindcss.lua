@@ -13,11 +13,12 @@ capabilities.textDocument.foldingRange = {
 
 local on_attach = function(client, bufnr) end
 
-local filetypes = { 'html', 'mdx', 'javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'vue', 'svelte' }
+local filetypes = { 'html', 'blade', 'mdx', 'javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'vue', 'svelte' }
 
 local settings = {
   tailwindCSS = {
     includeLanguages = {
+      blade = 'html',
       eelixir = 'html-eex',
       eruby = 'erb',
     },

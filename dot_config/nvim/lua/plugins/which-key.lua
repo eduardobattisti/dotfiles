@@ -17,6 +17,7 @@ return {
       { '<leader>g', group = '[G]it' },
       { '<leader>h', group = 'Git [H]unk' },
       { '<leader>l', group = '[L]SP' },
+      { '<leader>L', group = '[L]aravel' },
       { '<leader>m', group = '[M]ark' },
       { '<leader>n', group = '[N]otifications' },
       { '<leader>o', group = '[O]verseer/Tasks' },

@@ -12,7 +12,7 @@ return {
         -- Frontend & web
         'javascript', 'typescript', 'tsx', 'json', 'yaml', 'css', 'scss', 'html', 'vue', 'graphql', 'dockerfile',
         -- Backend
-        'php', 'go',
+        'php', 'php_only', 'blade', 'go',
       }
       opts.auto_install = true
       opts.highlight = {
@@ -71,17 +71,6 @@ return {
       }
     end,
     config = function(_, opts)
-      local parser_config = require('nvim-treesitter.parsers').get_parser_configs()
-
-      parser_config.blade = {
-        install_info = {
-          url = 'https://github.com/EmranMR/tree-sitter-blade',
-          files = { 'src/parser.c' },
-          branch = 'main',
-        },
-        filetype = 'blade',
-      }
-
       vim.filetype.add {
         extension = {
           stylus = 'css',

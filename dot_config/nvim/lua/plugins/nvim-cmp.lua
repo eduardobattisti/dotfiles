@@ -104,6 +104,8 @@ return {
           vim_item.kind = string.format('%s %s', kind_icons[vim_item.kind] or '', vim_item.kind)
           vim_item.menu = ({
             nvim_lsp = '[LSP]',
+            laravel = '[Laravel]',
+            ['blade-nav'] = '[Blade]',
             luasnip = '[Snip]',
             buffer = '[Buf]',
             path = '[Path]',

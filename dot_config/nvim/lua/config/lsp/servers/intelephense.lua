@@ -27,5 +27,10 @@ local settings = {
 
 M.settings = settings
 M.filetypes = filetypes
+M.get_language_id = function(_, filetype)
+  -- Intelephense only understands PHP language IDs. Keep the Blade filetype
+  -- for Tree-sitter while presenting mixed Blade templates as PHP to the LSP.
+  return filetype == 'blade' and 'php' or filetype
+end
 
 return M
