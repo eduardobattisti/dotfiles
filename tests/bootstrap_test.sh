@@ -57,6 +57,7 @@ assert_not_contains "$output" "/BlexMono.zip" "does not use the obsolete BlexMon
 assert_contains "$output" "flatpak --user remote-add" "uses a user-scoped Flatpak remote"
 assert_contains "$output" "com.logseq.Logseq" "plans Logseq reconciliation"
 assert_contains "$output" "Docker Engine" "plans native Docker reconciliation"
+assert_contains "$output" "composer global require laravel/lsp" "plans the official Laravel LSP installation"
 
 assert_contains "$(cat "$ROOT/scripts/windows-host.ps1")" "/IBMPlexMono.zip" \
   "uses the Nerd Fonts IBM Plex Mono release asset on Windows"

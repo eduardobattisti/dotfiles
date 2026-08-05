@@ -102,7 +102,7 @@ return {
         fields = { 'kind', 'abbr', 'menu' },
         format = function(entry, vim_item)
           vim_item.kind = string.format('%s %s', kind_icons[vim_item.kind] or '', vim_item.kind)
-          vim_item.menu = ({
+          local source_labels = {
             nvim_lsp = '[LSP]',
             laravel = '[Laravel]',
             ['blade-nav'] = '[Blade]',
@@ -110,7 +110,23 @@ return {
             buffer = '[Buf]',
             path = '[Path]',
             cmdline = '[Cmd]',
-          })[entry.source.name]
+          }
+          local lsp_labels = {
+            laravel_lsp = '[Laravel]',
+            intelephense = '[PHP]',
+            html = '[HTML]',
+            emmet_ls = '[Emmet]',
+            tailwindcss = '[Tailwind]',
+            vue_ls = '[Vue]',
+            vtsls = '[TS]',
+          }
+
+          if entry.source.name == 'nvim_lsp' then
+            local client = entry.source.source and entry.source.source.client
+            vim_item.menu = client and lsp_labels[client.name] or source_labels.nvim_lsp
+          else
+            vim_item.menu = source_labels[entry.source.name]
+          end
           return vim_item
         end,
       },

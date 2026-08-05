@@ -41,7 +41,9 @@ return { -- Autoformat
     -- end,
     formatters_by_ft = {
       lua = { 'stylua' },
-      php = { 'phpcbf' },
+      -- Prefer the Laravel project's own Pint rules, falling back to PHPCBF
+      -- for PHP projects that do not provide vendor/bin/pint.
+      php = { 'pint', 'phpcbf', stop_after_first = true },
       blade = { 'blade-formatter' },
       javascript = prettier_unless_eslint,
       typescript = prettier_unless_eslint,

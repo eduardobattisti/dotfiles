@@ -641,6 +641,22 @@ ensure_composer() {
   php "$installer" --quiet --install-dir="$HOME/.local/bin" --filename=composer --version="$latest"
 }
 
+ensure_laravel_lsp() {
+  [ "$PROFILE" = "workstation" ] || return 0
+
+  local composer_bin_dir laravel_lsp_bin
+  composer_bin_dir="$(composer global config bin-dir --absolute 2>/dev/null || true)"
+  laravel_lsp_bin="${composer_bin_dir:-$HOME/.config/composer/vendor/bin}/laravel-lsp"
+  if [ -x "$laravel_lsp_bin" ]; then
+    record_current "laravel-lsp"
+    return
+  fi
+
+  record_missing "laravel-lsp"
+  log "installing the official Laravel LSP for PHP and Blade support"
+  run composer global require laravel/lsp
+}
+
 ensure_docker_linux() {
   if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
     record_current "docker:$(docker --version | head -n1)"
@@ -918,6 +934,7 @@ main() {
 
   ensure_nvm_node
   ensure_composer
+  ensure_laravel_lsp
   if [ "$IS_WSL" -eq 1 ]; then
     ensure_windows_host
   fi

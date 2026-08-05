@@ -128,7 +128,6 @@ return {
       'html',
       'emmet_ls',
       'intelephense',
-      'laravel-ls',
       'vue_ls',
       'vtsls',
       'tailwindcss',
@@ -158,7 +157,6 @@ return {
         'eslint',
         'html',
         'intelephense',
-        'laravel_ls',
         'vue_ls',
         'vtsls',
         'tailwindcss',
@@ -166,7 +164,9 @@ return {
         'yamlls',
       },
       automatic_enable = {
-        exclude = { 'ts_ls' },
+        -- laravel_ls is the old community server. Laravel's official LSP is
+        -- installed with Composer and enabled explicitly below.
+        exclude = { 'ts_ls', 'laravel_ls' },
       },
     }
 
@@ -256,15 +256,63 @@ return {
       vim.tbl_deep_extend('force', default_config, {
         filetypes = require('config.lsp.servers.intelephense').filetypes,
         get_language_id = require('config.lsp.servers.intelephense').get_language_id,
+        handlers = vim.tbl_extend('force', handlers, {
+          -- A Blade document is not valid PHP as a whole. Keep Intelephense's
+          -- completion, hover and navigation, but let the Laravel LSP report
+          -- framework-aware Blade diagnostics without duplicate false errors.
+          ['textDocument/publishDiagnostics'] = function(err, result, ctx, config)
+            if result and result.uri then
+              local bufnr = vim.uri_to_bufnr(result.uri)
+              if vim.api.nvim_buf_is_valid(bufnr) and vim.bo[bufnr].filetype == 'blade' then
+                return
+              end
+            end
+
+            return vim.lsp.handlers['textDocument/publishDiagnostics'](err, result, ctx, config)
+          end,
+        }),
         settings = {
           intelephense = require('config.lsp.servers.intelephense').settings,
         },
       })
     )
 
-    -- Laravel-aware navigation and completion for views, routes, bindings,
-    -- assets and Blade components. Intelephense remains responsible for PHP.
-    vim.lsp.config('laravel_ls', default_config)
+    -- Laravel's official LSP handles framework conventions (Blade components,
+    -- routes, views, config, translations, Inertia, Livewire and Eloquent).
+    -- Intelephense remains attached for ordinary PHP symbols and types.
+    local laravel_lsp_command = vim.fn.exepath 'laravel-lsp'
+    if laravel_lsp_command == '' then
+      local composer_candidates = {
+        vim.fn.expand '~/.config/composer/vendor/bin/laravel-lsp',
+        vim.fn.expand '~/.composer/vendor/bin/laravel-lsp',
+      }
+      if vim.env.COMPOSER_HOME then
+        table.insert(composer_candidates, 1, vim.env.COMPOSER_HOME .. '/vendor/bin/laravel-lsp')
+      end
+      for _, candidate in ipairs(composer_candidates) do
+        if candidate and vim.fn.executable(candidate) == 1 then
+          laravel_lsp_command = candidate
+          break
+        end
+      end
+      if laravel_lsp_command == '' then
+        laravel_lsp_command = 'laravel-lsp'
+      end
+    end
+
+    vim.lsp.config(
+      'laravel_lsp',
+      vim.tbl_deep_extend('force', default_config, {
+        cmd = { laravel_lsp_command },
+        filetypes = { 'php', 'blade' },
+        root_markers = { 'artisan', 'composer.json', '.git' },
+        init_options = {
+          -- Auto-detect local PHP, Sail, Herd, Valet, Lando or DDEV.
+          phpEnvironment = 'auto',
+        },
+      })
+    )
+    vim.lsp.enable 'laravel_lsp'
 
     vim.lsp.config('vtsls', {
       capabilities = capabilities,

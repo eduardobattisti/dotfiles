@@ -6,6 +6,8 @@ A modular, fast, and modern Neovim configuration.
 
 - **Lazy-loaded plugins** with [lazy.nvim](https://github.com/folke/lazy.nvim)
 - LSP, Treesitter, autocompletion, and more
+- Official Laravel LSP plus Intelephense, Blade navigation/completion, Pint,
+  Blade Formatter, Tailwind, Vue, PHPUnit, and Xdebug support
 - Modular structure for easy customization
 - Custom Treesitter queries
 - Health checks and diagnostics
@@ -20,6 +22,14 @@ A modular, fast, and modern Neovim configuration.
    ```
 3. **Start Neovim**
    The first launch will automatically install plugins.
+
+For the complete Laravel experience, the workstation bootstrap installs the
+official `laravel/lsp` Composer package. If the configuration is installed
+without the bootstrap, install it manually:
+
+```sh
+composer global require laravel/lsp
+```
 
 ## Directory Structure
 
