@@ -7,7 +7,7 @@ A modular, fast, and modern Neovim configuration.
 - **Lazy-loaded plugins** with [lazy.nvim](https://github.com/folke/lazy.nvim)
 - LSP, Treesitter, autocompletion, and more
 - Official Laravel LSP plus Intelephense, Blade navigation/completion, Pint,
-  Blade Formatter, Tailwind, Vue, PHPUnit, and Xdebug support
+  project-aware Blade formatting, Tailwind, Vue, PHPUnit, and Xdebug support
 - PHP completion, hover, signatures, and navigation inside Blade through
   synchronized `otter.nvim` PHP projections
 - Modular structure for easy customization
@@ -37,6 +37,20 @@ In Blade files, `K` is context-aware: it documents common Blade directives,
 shows resolved BladeNav values, or forwards PHP hover requests to Intelephense
 through Otter. `<leader>lk` requests signature help for the PHP call under the
 cursor. Project-specific Blade directives still require their own documentation.
+
+Formatting is manual: run `:Format`, `<leader>bf`, or `<leader>cf`. Blade uses
+the project's local Prettier when both `prettier` and `prettier-plugin-blade`
+are installed under `node_modules`; otherwise it falls back to
+`blade-formatter`. There is no format-on-save hook.
+
+Laravel-aware `gf` follows route, view, config, environment, and Inertia
+resources while retaining Vim's regular `gf` elsewhere. `<leader>LC` opens the
+Composer picker. `<leader>Li` exposes safe Laravel IDE Helper generation when
+`barryvdh/laravel-ide-helper` is installed in the project.
+
+Projects containing `vendor/bin/phpstan` run their own PHPStan/Larastan version
+after saving PHP files. Use `:PhpStan` to run it manually for the current PHP
+buffer.
 
 ## Directory Structure
 

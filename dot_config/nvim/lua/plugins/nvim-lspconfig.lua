@@ -312,6 +312,10 @@ return {
         init_options = {
           -- Auto-detect local PHP, Sail, Herd, Valet, Lando or DDEV.
           phpEnvironment = 'auto',
+          -- Older Laravel applications and custom/module view paths can leave
+          -- the official LSP view index incomplete. Keep view completion,
+          -- hover and links, but avoid false "View [...] not found" warnings.
+          viewDiagnostics = false,
         },
       })
     )

@@ -1,3 +1,38 @@
+local function laravel_gf()
+  if Laravel.app('gf').cursorOnResource() then
+    return "<cmd>lua Laravel.commands.run('gf')<cr>"
+  end
+  return 'gf'
+end
+
+local function laravel_ide_helper()
+  local root = vim.fs.root(0, { 'artisan' })
+  if not root then
+    vim.notify('This buffer is not inside a Laravel project', vim.log.levels.WARN)
+    return
+  end
+
+  local package = vim.fs.joinpath(root, 'vendor', 'barryvdh', 'laravel-ide-helper')
+  if not vim.uv.fs_stat(package) then
+    vim.notify('laravel-ide-helper is not installed. Run: composer require --dev barryvdh/laravel-ide-helper', vim.log.levels.WARN)
+    return
+  end
+
+  local actions = {
+    { label = 'Generate helpers', args = { 'ide-helper:generate' } },
+    { label = 'Generate model helpers (no source changes)', args = { 'ide-helper:models', '--nowrite' } },
+    { label = 'Generate PhpStorm metadata', args = { 'ide-helper:meta' } },
+  }
+  vim.ui.select(actions, {
+    prompt = 'Laravel IDE Helper',
+    format_item = function(item) return item.label end,
+  }, function(item)
+    if item then
+      Laravel.run('artisan', item.args)
+    end
+  end)
+end
+
 return {
   {
     'adalessa/laravel.nvim',
@@ -20,6 +55,9 @@ return {
       { '<leader>Lp', function() Laravel.commands.run 'command_center' end, desc = 'Laravel: Command center' },
       { '<leader>Lh', function() Laravel.run 'artisan docs' end, desc = 'Laravel: Documentation' },
       { '<leader>Lv', function() Laravel.commands.run 'view:finder' end, desc = 'Laravel: View finder' },
+      { '<leader>LC', function() Laravel.pickers.composer() end, desc = 'Laravel: Composer' },
+      { '<leader>Li', laravel_ide_helper, desc = 'Laravel: IDE Helper' },
+      { 'gf', laravel_gf, expr = true, noremap = true, desc = 'Laravel: Go to resource' },
     },
     opts = {
       features = {
