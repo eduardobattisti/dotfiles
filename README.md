@@ -11,7 +11,7 @@ that keeps their applications present and current.
 |---|---|
 | Shell | Zsh, Oh My Zsh, Starship, lazy-loaded NVM, completions, aliases, keybindings, and a minimal Bash fallback |
 | Terminal | WezTerm with Gruvbox Material, BlexMono Nerd Font, smart pane navigation, workspaces, layouts, status/tab modules, and session persistence |
-| Editor | Neovim with lazy.nvim, Treesitter, Telescope, completion, formatting/linting, DAP, Mason/LSP, PHP/Blade, TypeScript/Vue, Tailwind, and optional multi-provider inline AI suggestions |
+| Editor | Neovim with lazy.nvim, Treesitter, Telescope, completion, formatting/linting, DAP, Mason/LSP, PHP/Blade, TypeScript/Vue, Tailwind, and optional multi-provider inline AI suggestions; optional Zed configuration with a matching Vim workflow |
 | Git and containers | Lazygit, Docker Engine/Compose or Docker Desktop under WSL, and Lazydocker |
 | Desktop | Logseq and Flameshot; Logseq graphs and application state remain unmanaged |
 | CLI utilities | Git, ripgrep, fd, fzf, bat, jq, ranger, btop, build tools, and clipboard providers |
@@ -33,6 +33,7 @@ updated by the bootstrap.
 │   ├── zsh/                 # Zsh modules
 │   ├── wezterm/             # Terminal modules and keybinding reference
 │   ├── nvim/                # Neovim configuration and lazy lockfile
+│   ├── zed/                 # Optional Zed settings and Vim-style key map
 │   ├── lazygit/             # Lazygit UI and commands
 │   ├── lazydocker/          # Lazydocker UI and commands
 │   ├── flameshot/           # Screenshot configuration
@@ -75,6 +76,11 @@ curl -fsSL \
 The bootstrap installs chezmoi when needed, initializes this repository,
 re-executes its checked-out copy, reconciles the managed applications, applies
 the dotfiles, and verifies the resulting environment.
+
+Zed itself is not installed or updated by the bootstrap. When Zed is installed
+separately on Linux or macOS, chezmoi applies its settings and Neovim-compatible
+key map. See [dot_config/zed/README.md](dot_config/zed/README.md) for the key
+reference and validation flow.
 
 ## Reconcile an existing machine
 
@@ -176,6 +182,7 @@ Edit the source through chezmoi:
 chezmoi edit ~/.zshrc
 chezmoi edit ~/.config/wezterm/wezterm.lua
 chezmoi edit ~/.config/nvim/init.lua
+chezmoi edit ~/.config/zed/keymap.json
 ```
 
 Machine-local secrets may be placed in `~/.config/zsh/.secrets`. Logseq graphs,

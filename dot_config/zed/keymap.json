@@ -1,0 +1,145 @@
+[
+  {
+    "context": "Editor && vim_mode == insert",
+    "bindings": {
+      "j k": "vim::NormalBefore",
+      "ctrl-s": "workspace::Save",
+      // Zed Vim documents ctrl-x ctrl-z as "hide all suggestions". Reuse it
+      // so the Minuet dismissal shortcut behaves the same in both editors.
+      "ctrl-]": ["workspace::SendKeystrokes", "ctrl-x ctrl-z"]
+    }
+  },
+  {
+    "context": "Editor && edit_prediction",
+    "bindings": {
+      "alt-l": "editor::AcceptEditPrediction",
+      "alt-]": "editor::NextEditPrediction",
+      "alt-[": "editor::PreviousEditPrediction"
+    }
+  },
+  {
+    "context": "Editor && vim_mode == normal",
+    "bindings": {
+      "ctrl-d": ["editor::PageDown", "editor::ScrollCursorCenter"],
+      "ctrl-u": ["editor::PageUp", "editor::ScrollCursorCenter"],
+
+      "ctrl-h": "workspace::ActivatePaneLeft",
+      "ctrl-j": "workspace::ActivatePaneDown",
+      "ctrl-k": "workspace::ActivatePaneUp",
+      "ctrl-l": "workspace::ActivatePaneRight",
+      "ctrl-alt-h": "vim::ResizePaneLeft",
+      "ctrl-alt-j": "vim::ResizePaneDown",
+      "ctrl-alt-k": "vim::ResizePaneUp",
+      "ctrl-alt-l": "vim::ResizePaneRight",
+
+      "g d": "editor::GoToDefinition",
+      "g r": "editor::FindAllReferences",
+      "g i": "editor::GoToImplementation",
+      "g t": "editor::GoToTypeDefinition",
+      "]d": "editor::GoToDiagnostic",
+      "[d": "editor::GoToPreviousDiagnostic",
+      "]h": "editor::GoToHunk",
+      "[h": "editor::GoToPreviousHunk",
+      "shift-h": "pane::ActivatePreviousItem",
+      "shift-l": "pane::ActivateNextItem",
+      "[b": "pane::ActivatePreviousItem",
+      "]b": "pane::ActivateNextItem",
+
+      // "space" alone is vim::WrappingRight by default. Free it so the
+      // normal-mode leader sequences below are reachable without affecting
+      // insert-mode spaces.
+      "space": null,
+
+      "space f f": "file_finder::Toggle",
+      "space f g": "pane::DeploySearch",
+      "space f b": "tab_switcher::Toggle",
+      "space f d": "diagnostics::Deploy",
+      "space /": "buffer_search::DeployReplace",
+
+      "space l a": "editor::ToggleCodeActions",
+      "space l r": "editor::Rename",
+      "space l k": "editor::ShowSignatureHelp",
+      "space c f": "editor::Format",
+
+      // Compatibility aliases from the previous Zed keymap.
+      "space c a": "editor::ToggleCodeActions",
+      "space r n": "editor::Rename",
+      "space f m": "editor::Format",
+
+      "space e": "project_panel::ToggleFocus",
+      "space t f": "terminal_panel::ToggleFocus",
+      "space t r": "task::Spawn",
+      "space t n": "editor::SpawnNearestTask",
+      "space d b": "editor::ToggleBreakpoint",
+
+      "space g g": "git_panel::ToggleFocus",
+      "space g b": "git::Blame",
+      "space h s": "git::ToggleStaged",
+      "space h r": "git::Restore",
+      "space h d": "editor::ToggleSelectedDiffHunks",
+
+      "space b n": "pane::ActivateNextItem",
+      "space b p": "pane::ActivatePreviousItem",
+      "space b b": "pane::AlternateFile",
+      "space b d": "pane::CloseActiveItem",
+      "space b o": "pane::CloseOtherItems",
+
+      "space -": "pane::SplitDown",
+      "space |": "pane::SplitRight",
+      "space w h": "pane::SplitDown",
+      "space w v": "pane::SplitRight",
+      "space w e": "workspace::ResetPaneSizes",
+      "space w m": "workspace::ToggleEditorZoom",
+      "space w c": "pane::CloseActiveItem",
+
+      "space q": "pane::CloseActiveItem",
+      "space z": "workspace::ToggleCenteredLayout"
+    }
+  },
+  {
+    "context": "Dock",
+    "bindings": {
+      "ctrl-w h": "workspace::ActivatePaneLeft",
+      "ctrl-w j": "workspace::ActivatePaneDown",
+      "ctrl-w k": "workspace::ActivatePaneUp",
+      "ctrl-w l": "workspace::ActivatePaneRight"
+    }
+  },
+  {
+    "context": "BufferSearchBar",
+    "bindings": {
+      "ctrl-n": "search::SelectNextMatch",
+      "ctrl-p": "search::SelectPreviousMatch"
+    }
+  },
+  {
+    "context": "ProjectSearchBar",
+    "bindings": {
+      "ctrl-n": "search::SelectNextMatch",
+      "ctrl-p": "search::SelectPreviousMatch"
+    }
+  },
+  {
+    "context": "ProjectSearchView",
+    "bindings": {
+      "ctrl-n": "search::SelectNextMatch",
+      "ctrl-p": "search::SelectPreviousMatch",
+      "j": "menu::SelectNext",
+      "k": "menu::SelectPrevious"
+    }
+  },
+  {
+    "context": "ProjectPanel && not_editing",
+    "bindings": {
+      "a": "project_panel::NewFile",
+      "shift-a": "project_panel::NewDirectory",
+      "d": "project_panel::Delete",
+      "r": "project_panel::Rename",
+      "x": "project_panel::Cut",
+      "c": "project_panel::Copy",
+      "p": "project_panel::Paste",
+      "j": "menu::SelectNext",
+      "k": "menu::SelectPrevious"
+    }
+  }
+]

@@ -195,6 +195,7 @@ SETUP.md
 .config/lazydocker/
 .config/lazygit/
 .config/nvim/
+.config/zed/
 .config/starship.toml
 .config/zsh/
 {{- end }}
