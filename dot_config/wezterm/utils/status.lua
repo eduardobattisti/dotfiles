@@ -200,10 +200,12 @@ end
 -- Setup status bar
 -- opts.minimal: when true, skips leader/key-table indicators, shows only
 --               git branch (no stats), and uses a simpler left status.
+-- opts.show_git: when false, avoids spawning Git processes from status events.
 function Status.setup(config, colors, opts)
 	colors = colors or {}
 	opts = opts or {}
 	local minimal = opts.minimal or false
+	local show_git = opts.show_git ~= false
 
 	-- Right status with git info and workspace
 	wezterm.on("update-right-status", function(window, pane)
@@ -221,7 +223,7 @@ function Status.setup(config, colors, opts)
 		local cwd = get_cwd_from_pane(pane)
 
 		-- Git information (caching active in both modes)
-		if cwd then
+		if show_git and cwd then
 			local branch = get_git_branch(cwd)
 			if branch then
 				local git_elements
@@ -324,4 +326,3 @@ function Status.setup(config, colors, opts)
 end
 
 return Status
-

@@ -2,8 +2,35 @@
 
 Zed uses its native Vim mode with the VS Code base keymap. The custom bindings
 keep the high-value Neovim workflow while using only documented Zed actions.
-Zed installation, authentication, extensions, and application state are not
-managed here.
+Zed installation, authentication, and application state are not managed here.
+The extensions required by this configuration are installed declaratively with
+Zed's `auto_install_extensions` setting.
+
+## Laravel and Blade
+
+The managed Laravel workflow combines these Zed extensions:
+
+- Laravel Community Edition for framework-aware views, routes, configuration,
+  translations, components, Livewire, Eloquent, hover, references, rename,
+  completion, diagnostics, quick actions, and outlines.
+- Blade for syntax highlighting, PHP/JavaScript/CSS injections, directive
+  folding, indentation, tag matching, and the template outline.
+- PHP/Intelephense for ordinary PHP symbols and types.
+- Emmet and Tailwind CSS for template markup and class completion.
+
+Zed explicitly classifies `*.blade.php` as `Blade`. PHP and Blade attach one
+general PHP server (Intelephense) alongside the framework-aware Laravel server;
+the other PHP servers are disabled to avoid duplicate results.
+
+As in Neovim, PHP and Blade formatting is manual. Use `Space c f`. Blade runs
+`blade-formatter --stdin`, installed by the workstation bootstrap. A project can
+customize it with `.bladeformatterrc.json`, using camel-case keys such as
+`indentSize` and `wrapLineLength`.
+
+After the first apply, start Zed with network access once so it can install the
+declared extensions and their language servers. Then run `lsp: restart` or
+restart Zed. Laravel features require opening the Laravel project directory,
+not an isolated PHP or Blade file.
 
 ## Core workflow
 

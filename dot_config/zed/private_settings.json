@@ -2,6 +2,18 @@
   "cli_default_open_behavior": "existing_window",
   "icon_theme": "Zed (Default)",
   "base_keymap": "VSCode",
+  "auto_install_extensions": {
+    "blade": true,
+    "dockerfile": true,
+    "emmet": true,
+    "everforest": true,
+    "html": true,
+    "laravel": true,
+    "lua": true,
+    "php": true,
+    "scss": true,
+    "vue": true
+  },
   "edit_predictions": {
     "provider": "copilot"
   },
@@ -65,7 +77,42 @@
     "active_line_width": 2,
     "coloring": "indent_aware"
   },
+  "file_types": {
+    "Blade": ["*.blade.php"]
+  },
   "lsp": {
+    "laravel-lsp": {
+      "settings": {
+        "autoCompleteDebounce": 100,
+        "blade": {
+          "directiveSpacing": false
+        },
+        "codeLens": {
+          "enabled": false
+        },
+        "diagnostics": {
+          "severity": "warning"
+        }
+      }
+    },
+    "intelephense": {
+      "settings": {
+        "files": {
+          "exclude": [
+            "**/stubs/**",
+            "**/_ide_helper*.php",
+            "**/.phpstorm.meta.php"
+          ]
+        }
+      }
+    },
+    "tailwindcss-language-server": {
+      "settings": {
+        "includeLanguages": {
+          "blade": "html"
+        }
+      }
+    },
     "typescript-language-server": {
       "initialization_options": {
         "preferences": {
@@ -112,6 +159,40 @@
   "format_on_save": "on",
   "formatter": "language_server",
   "languages": {
+    "PHP": {
+      "language_servers": [
+        "laravel-lsp",
+        "intelephense",
+        "!phpactor",
+        "!phptools",
+        "..."
+      ],
+      "document_symbols": "on",
+      "format_on_save": "off",
+      "tab_size": 2
+    },
+    "Blade": {
+      "language_servers": [
+        "laravel-lsp",
+        "intelephense",
+        "emmet",
+        "tailwindcss-language-server",
+        "!phpactor",
+        "!phptools",
+        "!phpantom",
+        "..."
+      ],
+      "document_symbols": "on",
+      "semantic_tokens": "combined",
+      "formatter": {
+        "external": {
+          "command": "blade-formatter",
+          "arguments": ["--stdin"]
+        }
+      },
+      "format_on_save": "off",
+      "tab_size": 2
+    },
     "TypeScript": {
       "format_on_save": "on",
       "code_actions_on_format": {

@@ -285,7 +285,11 @@ end
 -- Option 1: Use enhanced status bar (recommended)
 -- Note: Simplified for WSL compatibility - removed battery, RAM, time/date monitoring
 if status_module and theme then
-	status_module.setup(config, theme.colors)
+	status_module.setup(config, theme.colors, {
+		-- Synchronous git.exe polling against WSL paths blocks keyboard input and
+		-- flashes console windows on the Windows host.
+		show_git = not (platform and platform.is_windows),
+	})
 end
 
 -- ===========================
