@@ -56,6 +56,7 @@
 **/.azure/**
 **/.config/gcloud/application_default_credentials.json
 **/github-copilot/apps.json
+**/DBeaverData/**
 **/.kube/config
 **/auth.json
 **/token.json
@@ -186,8 +187,8 @@ README.md
 SETUP.md
 
 {{- if eq .chezmoi.os "windows" }}
-# Native Windows only needs the shared WezTerm configuration. Development
-# commands and editor state live inside WSL.
+# Native Windows only needs the shared WezTerm and Flameshot configurations.
+# Development commands and editor state live inside WSL.
 .bashrc
 .zshrc
 .config/flameshot/
@@ -198,4 +199,10 @@ SETUP.md
 .config/zed/
 .config/starship.toml
 .config/zsh/
+{{- end }}
+
+{{- if ne .chezmoi.os "windows" }}
+# Flameshot stores the same configuration under AppData on Windows. The
+# canonical contents live in .chezmoitemplates/flameshot.ini.
+AppData/Roaming/flameshot/
 {{- end }}

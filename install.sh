@@ -52,6 +52,7 @@ Environment:
   DOTFILES_LAZYDOCKER_VERSION override the Lazydocker release tag
   DOTFILES_STARSHIP_VERSION  override the Starship release tag
   DOTFILES_NERD_FONT_VERSION override the Nerd Fonts release tag
+  DOTFILES_DBEAVER_VERSION   override the DBeaver Community release tag
 EOF
 }
 
@@ -295,7 +296,10 @@ ensure_linux_packages() {
     packages+=(flatpak)
   fi
   if [ "$PROFILE" = "workstation" ]; then
-    packages+=(php-cli php-mbstring php-xml php-curl btop flameshot)
+    packages+=(php-cli php-mbstring php-xml php-curl btop)
+    if [ "$IS_WSL" -eq 0 ]; then
+      packages+=(flameshot)
+    fi
   fi
 
   local missing="" package
@@ -602,6 +606,26 @@ ensure_nvm_node() {
   fi
 }
 
+ensure_blade_formatter() {
+  [ "$PROFILE" = "workstation" ] || return 0
+
+  if [ "$TEST_MODE" -eq 1 ]; then
+    record_missing "npm:blade-formatter"
+    log "installing blade-formatter for manual Blade formatting in Zed and Neovim"
+    run npm install --global blade-formatter
+    return
+  fi
+
+  if command -v blade-formatter >/dev/null 2>&1; then
+    record_current "npm:blade-formatter"
+    return
+  fi
+
+  record_missing "npm:blade-formatter"
+  log "installing blade-formatter for manual Blade formatting in Zed and Neovim"
+  run npm install --global blade-formatter
+}
+
 ensure_composer() {
   [ "$PROFILE" = "workstation" ] || return 0
   local latest installed
@@ -744,6 +768,40 @@ ensure_logseq_linux() {
   fi
 }
 
+ensure_dbeaver_linux() {
+  [ "$PROFILE" = "workstation" ] || return 0
+  [ "$IS_WSL" -eq 0 ] || return 0
+
+  local tag version arch_name asset installed package
+  tag="${DOTFILES_DBEAVER_VERSION:-$(github_latest_tag dbeaver/dbeaver)}"
+  [ -n "$tag" ] || die "could not resolve the stable DBeaver Community release"
+  version="${tag#v}"
+  case "$ARCH" in
+    amd64) arch_name="x86_64" ;;
+    arm64) arch_name="aarch64" ;;
+  esac
+  asset="dbeaver-ce-${version}-linux-${arch_name}.deb"
+  installed="$(dpkg-query -W -f='${Version}' dbeaver-ce 2>/dev/null || true)"
+
+  case "$installed" in
+    "$version"|"$version"-*)
+      record_current "dbeaver-ce:$version"
+      return
+      ;;
+    "") record_missing "dbeaver-ce:$version" ;;
+    *)
+      record_outdated "dbeaver-ce:$installed->$version"
+      [ "$INSTALL_ONLY" -eq 0 ] || return 0
+      ;;
+  esac
+
+  ensure_tmp_root
+  package="$TMP_ROOT/$asset"
+  download "https://github.com/dbeaver/dbeaver/releases/download/${tag}/${asset}" "$package"
+  log "installing DBeaver Community $version from its official Debian package"
+  sudo_run apt-get install -y "$package"
+}
+
 ensure_windows_host() {
   [ "$IS_WSL" -eq 1 ] || return 0
   [ "$WINDOWS_HOST_DONE" -eq 0 ] || return 0
@@ -849,7 +907,12 @@ maybe_change_shell() {
 verify_installation() {
   log "verifying managed commands"
   local required="git zsh nvim lazygit lazydocker starship docker"
-  [ "$PROFILE" = "workstation" ] && required="$required node php composer btop"
+  if [ "$PROFILE" = "workstation" ]; then
+    required="$required node php composer btop blade-formatter"
+    if [ "$OS" = "linux" ] && [ "$IS_WSL" -eq 0 ]; then
+      required="$required flameshot dbeaver"
+    fi
+  fi
   local command_name
   for command_name in $required; do
     if command -v "$command_name" >/dev/null 2>&1; then
@@ -924,6 +987,7 @@ main() {
       ensure_nerd_font
       ensure_wezterm_linux
       ensure_logseq_linux
+      ensure_dbeaver_linux
     fi
     ensure_docker_linux
   else
@@ -933,6 +997,7 @@ main() {
   fi
 
   ensure_nvm_node
+  ensure_blade_formatter
   ensure_composer
   ensure_laravel_lsp
   if [ "$IS_WSL" -eq 1 ]; then

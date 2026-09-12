@@ -13,12 +13,14 @@ that keeps their applications present and current.
 | Terminal | WezTerm with Gruvbox Material, BlexMono Nerd Font, smart pane navigation, workspaces, layouts, status/tab modules, and session persistence |
 | Editor | Neovim with lazy.nvim, Treesitter, Telescope, completion, formatting/linting, DAP, Mason/LSP, PHP/Blade, TypeScript/Vue, Tailwind, and optional multi-provider inline AI suggestions; optional Zed configuration with a matching Vim workflow |
 | Git and containers | Lazygit, Docker Engine/Compose or Docker Desktop under WSL, and Lazydocker |
-| Desktop | Logseq and Flameshot; Logseq graphs and application state remain unmanaged |
+| Desktop | Logseq, Flameshot, and DBeaver Community; Logseq graphs, DBeaver connections/credentials, and application state remain unmanaged |
 | CLI utilities | Git, ripgrep, fd, fzf, bat, jq, ranger, btop, build tools, and clipboard providers |
 
 The default `workstation` profile also installs Node LTS through NVM and
-PHP/Composer. Bun, Fly.io, htop, Neovim plugins, and Mason-managed tools are not
-updated by the bootstrap.
+PHP/Composer. On physical Linux workstations it adds Flameshot and DBeaver
+Community; native Windows reconciliation installs both through winget. Bun,
+Fly.io, htop, Neovim plugins, and Mason-managed tools are not updated by the
+bootstrap.
 
 ## Repository layout
 
@@ -27,6 +29,8 @@ updated by the bootstrap.
 ├── .chezmoi.toml.tmpl       # Machine-local chezmoi data
 ├── .chezmoiignore           # OS-specific target selection
 ├── .chezmoiremove           # Cleanup list for retired target files
+├── .chezmoitemplates/       # Shared cross-platform file contents
+├── AppData/Roaming/         # Native Windows configuration targets
 ├── dot_zshrc.tmpl           # Modular Zsh entrypoint
 ├── dot_bashrc.tmpl          # Bash fallback
 ├── dot_config/
@@ -36,7 +40,7 @@ updated by the bootstrap.
 │   ├── zed/                 # Optional Zed settings and Vim-style key map
 │   ├── lazygit/             # Lazygit UI and commands
 │   ├── lazydocker/          # Lazydocker UI and commands
-│   ├── flameshot/           # Screenshot configuration
+│   ├── flameshot/           # Linux target for the shared screenshot config
 │   └── starship.toml        # Prompt theme
 ├── dot_local/bin/           # Portable user commands
 ├── scripts/windows-host.ps1 # Native Windows side of WSL setup
@@ -47,6 +51,12 @@ updated by the bootstrap.
 Files named `dot_*`, `private_*`, and `executable_*` use chezmoi source-state
 attributes; they become normal dotted, private, or executable targets in the
 home directory.
+
+Flameshot uses one canonical `.chezmoitemplates/flameshot.ini` template. Thin
+target templates render it to `~/.config/flameshot/flameshot.ini` on Linux and
+`%APPDATA%\flameshot\flameshot.ini` on Windows. The templated
+`.chezmoiignore` selects only the target appropriate for the current operating
+system, following chezmoi's shared-content/different-location pattern.
 
 ## Fresh machine
 
@@ -103,8 +113,8 @@ Useful options:
 --no-apply
 ```
 
-- `workstation` is the default and includes Node, PHP/Composer, btop, and
-  Flameshot.
+- `workstation` is the default and includes Node, PHP/Composer, and btop. On
+  physical Linux it also includes Flameshot and DBeaver Community.
 - `core` keeps the shell, terminal, editor, Git/Docker tools, Logseq, font, and
   their strict dependencies, while omitting workstation language extras.
 - `--dry-run` reports planned package, release, and chezmoi actions without
@@ -152,11 +162,17 @@ for compatible-endpoint and model examples.
 ## Platform behavior
 
 - Debian, Ubuntu, Pop!_OS, and Ubuntu-based WSL distributions are supported.
+- Linux installs Flameshot from APT in the `workstation` profile and applies
+  its configuration under `~/.config/flameshot`.
+- Linux installs or updates DBeaver Community from its official stable Debian
+  release in the `workstation` profile. WSL leaves the database GUI on Windows.
 - Linux uses native WezTerm, Flatpak Logseq, and Docker's official APT
   repository.
 - In WSL, CLI tools live in Linux. PowerShell/winget manages native Windows
-  WezTerm, Logseq, Docker Desktop, BlexMono Nerd Font, and Windows chezmoi.
-- Windows-side chezmoi applies only the native WezTerm configuration.
+  WezTerm, Flameshot, DBeaver Community, Logseq, Docker Desktop, BlexMono Nerd
+  Font, and Windows chezmoi.
+- Windows-side chezmoi applies the native WezTerm configuration and the shared
+  Flameshot configuration under `%APPDATA%\flameshot`.
 - macOS uses Homebrew and is implemented as a best-effort, untested path.
 - Other Linux families exit with an explicit unsupported-system message.
 
@@ -186,8 +202,9 @@ chezmoi edit ~/.config/zed/keymap.json
 ```
 
 Machine-local secrets may be placed in `~/.config/zsh/.secrets`. Logseq graphs,
-Docker data, Neovim plugins, Mason caches, generated WezTerm sessions, and other
-application state must not be committed.
+Docker data, DBeaverData connections and credentials, Neovim plugins, Mason
+caches, generated WezTerm sessions, and other application state must not be
+committed.
 
 See [SETUP.md](SETUP.md) for troubleshooting and
 [dot_config/wezterm/KEYBINDINGS.md](dot_config/wezterm/KEYBINDINGS.md) for the

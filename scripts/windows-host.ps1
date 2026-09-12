@@ -10,6 +10,8 @@ param(
 $ErrorActionPreference = "Stop"
 $packages = @(
     "wez.wezterm",
+    "Flameshot.Flameshot",
+    "DBeaver.DBeaver.Community",
     "Logseq.Logseq",
     "Docker.DockerDesktop",
     "twpayne.chezmoi"

@@ -38,19 +38,26 @@ The installer puts user-managed binaries in `~/.local/bin` and Neovim releases
 under `~/.local/opt`. It does not delete an older `/opt` Neovim or Flatpak
 WezTerm.
 
+The Linux `workstation` profile installs or updates DBeaver Community from its
+official stable Debian package. Its `DBeaverData` directory, connection
+definitions, and credentials remain machine-local and unmanaged.
+
 ## Windows and WSL
 
 Run the Bash installer inside an Ubuntu-like WSL distribution. It invokes
 PowerShell to reconcile these Windows-host packages through winget:
 
 - WezTerm
+- Flameshot
+- DBeaver Community
 - Logseq
 - Docker Desktop
 - chezmoi
 - BlexMono Nerd Font
 
-Windows chezmoi applies only the native WezTerm configuration. Zsh, Neovim,
-Lazygit, and Lazydocker remain inside WSL.
+Windows chezmoi applies the native WezTerm configuration and the shared
+Flameshot configuration under `%APPDATA%\flameshot`. Zsh, Neovim, Lazygit,
+and Lazydocker remain inside WSL.
 
 After Docker Desktop installation, enable the distribution under:
 

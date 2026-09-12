@@ -58,11 +58,30 @@ assert_contains "$output" "flatpak --user remote-add" "uses a user-scoped Flatpa
 assert_contains "$output" "com.logseq.Logseq" "plans Logseq reconciliation"
 assert_contains "$output" "Docker Engine" "plans native Docker reconciliation"
 assert_contains "$output" "composer global require laravel/lsp" "plans the official Laravel LSP installation"
+assert_contains "$output" "npm install --global blade-formatter" \
+  "plans the Blade formatter required by the managed Zed workflow"
+assert_contains "$output" "flameshot" "plans Flameshot installation on Linux workstations"
+assert_contains "$output" "dbeaver-ce-999.0.0-linux-x86_64.deb" \
+  "plans the official DBeaver Community package on Linux workstations"
 
 assert_contains "$(cat "$ROOT/scripts/windows-host.ps1")" "/IBMPlexMono.zip" \
   "uses the Nerd Fonts IBM Plex Mono release asset on Windows"
 assert_not_contains "$(cat "$ROOT/scripts/windows-host.ps1")" '"BlexMono.zip"' \
   "does not use the obsolete BlexMono archive name on Windows"
+assert_contains "$(cat "$ROOT/scripts/windows-host.ps1")" '"Flameshot.Flameshot"' \
+  "reconciles Flameshot through winget on Windows"
+assert_contains "$(cat "$ROOT/scripts/windows-host.ps1")" '"DBeaver.DBeaver.Community"' \
+  "reconciles DBeaver Community through winget on Windows"
+assert_contains "$(cat "$ROOT/.chezmoiignore")" 'AppData/Roaming/flameshot/' \
+  "selects the Windows Flameshot configuration path through chezmoi"
+assert_contains "$(cat "$ROOT/.chezmoiignore")" '**/DBeaverData/**' \
+  "keeps DBeaver connections and credentials unmanaged"
+assert_contains "$(cat "$ROOT/dot_config/zed/private_settings.json")" '"laravel": true' \
+  "auto-installs the managed Zed Laravel extension"
+assert_contains "$(cat "$ROOT/dot_config/zed/private_settings.json")" '"Blade": ["*.blade.php"]' \
+  "classifies Blade templates correctly in Zed"
+assert_contains "$(cat "$ROOT/dot_config/zed/private_settings.json")" '"laravel-lsp"' \
+  "attaches Laravel intelligence to managed Zed languages"
 
 output="$(
   DOTFILES_TEST_MODE=1 \
@@ -78,6 +97,8 @@ assert_contains "$output" "Windows GUI apps manually" "reports unavailable host 
 assert_not_contains "$output" "flatpak" "does not install Flatpak applications inside WSL"
 assert_not_contains "$output" "apt.fury.io/wez" "does not install Linux WezTerm inside WSL"
 assert_not_contains "$output" "IBMPlexMono.zip" "does not install the terminal font inside WSL"
+assert_not_contains "$output" "apt:flameshot" "does not install Linux Flameshot inside WSL"
+assert_not_contains "$output" "dbeaver-ce-999.0.0-linux" "does not install Linux DBeaver inside WSL"
 
 output="$(
   DOTFILES_TEST_MODE=1 \
