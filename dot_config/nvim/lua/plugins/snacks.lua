@@ -8,11 +8,20 @@ return {
       enabled = true,
       size = 1024 * 1024,
       setup = function(ctx)
-        vim.cmd [[NoMatchParen]]
+        if vim.fn.exists ':NoMatchParen' ~= 0 then
+          vim.cmd 'NoMatchParen'
+        end
         vim.opt_local.foldmethod = 'manual'
         vim.opt_local.spell = false
+        vim.opt_local.statuscolumn = ''
+        vim.opt_local.conceallevel = 0
+        vim.b[ctx.buf].completion = false
+        vim.b[ctx.buf].minianimate_disable = true
+        vim.b[ctx.buf].minihipatterns_disable = true
         vim.schedule(function()
-          vim.bo[ctx.buf].syntax = ''
+          if vim.api.nvim_buf_is_valid(ctx.buf) then
+            vim.bo[ctx.buf].syntax = ''
+          end
         end)
       end,
     },
@@ -64,6 +73,22 @@ return {
       modes = { 'n' },
     },
 
+    image = {
+      enabled = true,
+      doc = {
+        enabled = true,
+        -- WezTerm supports floating images, but not inline placeholders.
+        inline = false,
+        float = true,
+        max_width = 80,
+        max_height = 40,
+      },
+      -- Keep image previews focused and avoid loading math renderers.
+      math = {
+        enabled = false,
+      },
+    },
+
     styles = {
       notification = {
         wo = { wrap = true },
@@ -92,7 +117,7 @@ return {
     },
 
     scroll = {
-      enabled = true,
+      enabled = false,
     },
 
     animate = {
@@ -168,6 +193,17 @@ return {
       end,
       mode = { 'n', 'x' },
       desc = 'Git Browse (copy URL)',
+    },
+
+    -- ========================================================================
+    -- IMAGE PREVIEW
+    -- ========================================================================
+    {
+      '<leader>ip',
+      function()
+        Snacks.image.hover()
+      end,
+      desc = 'Preview Image Under Cursor',
     },
 
     -- ========================================================================

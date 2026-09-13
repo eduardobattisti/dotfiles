@@ -146,7 +146,7 @@ customCommands:
         title: "Commit message"
         key: "Message"
         initialValue: ""
-    command: "git commit -m '{{.Form.Type}}{{if .Form.Scope}}({{.Form.Scope}}){{end}}: {{.Form.Message}}'"
+    command: '{{ $scope := "" }}{{ if .Form.Scope }}{{ $scope = printf "(%s)" .Form.Scope }}{{ end }}git commit -m {{ printf "%s%s: %s" .Form.Type $scope .Form.Message | quote }}'
     loadingText: "Committing..."
 
   # Open repo in browser
@@ -165,5 +165,5 @@ customCommands:
         title: "Stash message"
         key: "Message"
         initialValue: ""
-    command: "git stash push -m '{{.Form.Message}}' -- $(git diff --cached --name-only)"
+    command: 'git stash push --staged -m {{.Form.Message | quote}}'
     loadingText: "Stashing staged..."

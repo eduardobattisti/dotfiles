@@ -16,6 +16,7 @@ return {
       { '<leader>f', group = '[F]ind (Telescope)' },
       { '<leader>g', group = '[G]it' },
       { '<leader>h', group = 'Git [H]unk' },
+      { '<leader>i', group = '[I]mage' },
       { '<leader>l', group = '[L]SP' },
       { '<leader>L', group = '[L]aravel' },
       { '<leader>m', group = '[M]ark' },

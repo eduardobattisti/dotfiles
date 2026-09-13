@@ -1,5 +1,6 @@
 return {
   'neovim/nvim-lspconfig',
+  event = { 'BufReadPre', 'BufNewFile' },
   dependencies = {
     -- Automatically install LSPs and related tools to stdpath for Neovim
     { 'williamboman/mason.nvim', config = true },
@@ -21,12 +22,17 @@ return {
       callback = function(event)
         local lsp_utils = require 'config.lsp.utils'
 
-        lsp_utils.keymap('gd', require('telescope.builtin').lsp_definitions, event.buf, '[G]oto [D]efinition')
-        lsp_utils.keymap('gr', require('telescope.builtin').lsp_references, event.buf, '[G]oto [R]eferences')
-        lsp_utils.keymap('gI', require('telescope.builtin').lsp_implementations, event.buf, '[G]oto [I]mplementation')
-        lsp_utils.keymap('<leader>lD', require('telescope.builtin').lsp_type_definitions, event.buf, 'Type [D]efinition')
-        lsp_utils.keymap('<leader>lds', require('telescope.builtin').lsp_document_symbols, event.buf, '[D]ocument [S]ymbols')
-        lsp_utils.keymap('<leader>lws', require('telescope.builtin').lsp_dynamic_workspace_symbols, event.buf, '[W]orkspace [S]ymbols')
+        local function picker(name)
+          return function()
+            require('telescope.builtin')[name]()
+          end
+        end
+        lsp_utils.keymap('gd', picker 'lsp_definitions', event.buf, '[G]oto [D]efinition')
+        lsp_utils.keymap('gr', picker 'lsp_references', event.buf, '[G]oto [R]eferences')
+        lsp_utils.keymap('gI', picker 'lsp_implementations', event.buf, '[G]oto [I]mplementation')
+        lsp_utils.keymap('<leader>lD', picker 'lsp_type_definitions', event.buf, 'Type [D]efinition')
+        lsp_utils.keymap('<leader>lds', picker 'lsp_document_symbols', event.buf, '[D]ocument [S]ymbols')
+        lsp_utils.keymap('<leader>lws', picker 'lsp_dynamic_workspace_symbols', event.buf, '[W]orkspace [S]ymbols')
         lsp_utils.keymap('<leader>lr', vim.lsp.buf.rename, event.buf, '[R]ename')
         lsp_utils.keymap('<leader>la', vim.lsp.buf.code_action, event.buf, '[C]ode [A]ction')
         lsp_utils.keymap('gD', vim.lsp.buf.declaration, event.buf, '[G]oto [D]eclaration')
@@ -66,42 +72,10 @@ return {
           end
         end, event.buf, 'Vue LSP [D]iagnostic')
 
-        -- The following two autocommands are used to highlight references of the
-        -- word under your cursor when your cursor rests there for a little while.
-        --    See `:help CursorHold` for information about when this is executed
-        --
-        -- When you move your cursor, the highlights will be cleared (the second autocommand).
+        -- Snacks.words owns document highlighting globally and debounces its
+        -- requests. Avoid adding another pair of cursor autocommands per LSP
+        -- client, which multiplies requests in Blade and Vue buffers.
         local client = vim.lsp.get_client_by_id(event.data.client_id)
-        if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
-          local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
-
-          vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-            buffer = event.buf,
-            group = highlight_augroup,
-            callback = function()
-              vim.lsp.buf.document_highlight()
-            end,
-          })
-
-          vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-            buffer = event.buf,
-            group = highlight_augroup,
-            callback = vim.lsp.buf.clear_references,
-          })
-
-          vim.api.nvim_create_autocmd('LspDetach', {
-            group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
-            callback = function(event2)
-              vim.lsp.buf.clear_references()
-              vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event2.buf }
-            end,
-          })
-        end
-
-        -- The following autocommand is used to enable inlay hints in your
-        -- code, if the language server you are using supports them
-        --
-        -- This may be unwanted, since they displace some of your code
         if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) and vim.lsp.inlay_hint then
           lsp_utils.keymap('<leader>lth', function()
             vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
@@ -136,7 +110,11 @@ return {
     }
 
     -- Install tools with mason-tool-installer
-    require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+    require('mason-tool-installer').setup {
+      ensure_installed = ensure_installed,
+      start_delay = 3000,
+      debounce_hours = 24,
+    }
 
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
@@ -192,7 +170,6 @@ return {
     )
 
     local base_eslint_on_attach = vim.lsp.config.eslint and vim.lsp.config.eslint.on_attach
-    local eslint_fix_group = vim.api.nvim_create_augroup('eslint-fix-on-save', { clear = true })
 
     vim.lsp.config(
       'eslint',
@@ -201,11 +178,7 @@ return {
           if base_eslint_on_attach then
             base_eslint_on_attach(client, bufnr)
           end
-          vim.api.nvim_create_autocmd('BufWritePre', {
-            group = eslint_fix_group,
-            buffer = bufnr,
-            command = 'LspEslintFixAll',
-          })
+          -- Automatic save fixes are owned by conform-nvim.lua.
         end,
       })
     )
@@ -214,15 +187,17 @@ return {
 
     vim.lsp.config('css_variables', default_config)
 
-    vim.lsp.config('emmet_ls', vim.tbl_deep_extend('force', default_config, {
-      -- Keep Emmet out of plain JS/TS so it doesn't suggest tag snippets in server-side code.
-      filetypes = { 'html', 'css', 'scss', 'javascriptreact', 'typescriptreact', 'vue', 'blade' },
-    }))
+    vim.lsp.config(
+      'emmet_ls',
+      vim.tbl_deep_extend('force', default_config, {
+        -- Keep Emmet out of plain JS/TS so it doesn't suggest tag snippets in server-side code.
+        filetypes = { 'html', 'css', 'scss', 'javascriptreact', 'typescriptreact', 'vue', 'blade' },
+      })
+    )
 
     vim.lsp.config('tailwindcss', {
       capabilities = require('config.lsp.servers.tailwindcss').capabilities,
       handlers = handlers,
-      filetypes = require('config.lsp.servers.tailwindcss').filetypes,
       on_attach = require('config.lsp.servers.tailwindcss').on_attach,
       settings = require('config.lsp.servers.tailwindcss').settings,
     })

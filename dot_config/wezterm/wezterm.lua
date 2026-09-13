@@ -20,7 +20,7 @@ local theme = safe_require("utils.theme")
 local keys_module = safe_require("utils.keys")
 local status_module = safe_require("utils.status")
 
-local windows_wsl_domain = "WSL:Ubuntu"
+local windows_wsl_domain = os.getenv("WEZTERM_WSL_DOMAIN") or "WSL:Ubuntu"
 
 -- Configuration object
 local config = {}
@@ -28,6 +28,9 @@ local config = {}
 if wezterm.config_builder then
 	config = wezterm.config_builder()
 end
+
+-- Preserve failed processes so their output can be inspected.
+config.exit_behavior = "CloseOnCleanExit"
 
 -- Keep the native Windows GUI while opening its shell directly in Ubuntu.
 -- WezTerm creates built-in WSL domains automatically, so no startup probe or

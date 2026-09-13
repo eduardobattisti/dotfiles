@@ -13,8 +13,6 @@ capabilities.textDocument.foldingRange = {
 
 local on_attach = function(client, bufnr) end
 
-local filetypes = { 'html', 'blade', 'mdx', 'javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'vue', 'svelte' }
-
 local settings = {
   tailwindCSS = {
     includeLanguages = {
@@ -33,6 +31,9 @@ local settings = {
     },
     experimental = {
       classRegex = {
+        -- Laravel's standard conditional-class directive. The outer regex
+        -- selects the array; the inner regex selects each quoted class list.
+        { '@class\\s*\\(\\s*\\[([\\s\\S]*?)\\]\\s*\\)', '[\'"`]([^\'"`]*)[\'"`]' },
         ---@see https://github.com/RayGuo-ergou/tailwind-intellisense-regex-list?tab=readme-ov-file#plain-javascript-object
         ---All javascript object, only enable when needed e.g. long object
         -- ':\\s*?["\'`]([^"\'`]*).*?,',
@@ -58,7 +59,6 @@ local settings = {
 }
 
 M.settings = settings
-M.filetypes = filetypes
 M.capabilities = capabilities
 M.on_attach = on_attach
 

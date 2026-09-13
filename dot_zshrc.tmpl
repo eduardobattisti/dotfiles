@@ -1,14 +1,15 @@
 # ~/.zshrc — interactive shell configuration
 # Modular configuration lives in ~/.config/zsh.
+{{- $paths := get . "paths" | default dict }}
 
 typeset -U path PATH
 path=(
-  "{{ .paths.local_bin }}"
+  {{ get $paths "local_bin" | default (joinPath .chezmoi.homeDir ".local/bin") | quote }}
   $path
 )
 
 # Oh My Zsh plugins must be declared before the framework loads.
-export ZSH="{{ .paths.oh_my_zsh }}"
+export ZSH={{ get $paths "oh_my_zsh" | default (joinPath .chezmoi.homeDir ".oh-my-zsh") | quote }}
 ZSH_THEME="" # Starship owns the prompt.
 if [[ -r "$HOME/.config/zsh/plugins.zsh" ]]; then
   source "$HOME/.config/zsh/plugins.zsh"
@@ -31,8 +32,8 @@ unset config_file
 export EDITOR=nvim
 export VISUAL=nvim
 
-{{- if .email }}
-export EMAIL={{ .email | quote }}
+{{- with get . "email" }}
+export EMAIL={{ . | quote }}
 {{- end }}
 
 # Machine-local secrets are deliberately not managed by chezmoi.

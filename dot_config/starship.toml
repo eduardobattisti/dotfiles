@@ -23,7 +23,7 @@ add_newline = true
 palette = "frappe"
 
 [directory]
-style = 'bold fg:dark_blue'
+style = 'bold fg:blue'
 format = '[$path ]($style)'
 truncation_length = 3
 truncation_symbol = '…/'

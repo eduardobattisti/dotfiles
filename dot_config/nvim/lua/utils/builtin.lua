@@ -55,6 +55,39 @@ function M.delete_other_buffers()
   end
 end
 
+function M.copy_current_file_path(opts)
+  opts = opts or {}
+
+  local bufnr = vim.api.nvim_get_current_buf()
+  local path = vim.api.nvim_buf_get_name(bufnr)
+  if path == '' or vim.bo[bufnr].buftype ~= '' then
+    vim.notify('Current buffer does not have a file path', vim.log.levels.WARN)
+    return
+  end
+
+  path = vim.fs.normalize(vim.fn.fnamemodify(path, ':p'))
+  local label = 'absolute'
+
+  if not opts.absolute then
+    local root = vim.fs.root(path, '.git') or vim.uv.cwd()
+    local relative = root and vim.fs.relpath(root, path) or nil
+    if relative then
+      path = relative
+      label = 'project-relative'
+    end
+  end
+
+  local provider_ok, provider = pcall(vim.fn['provider#clipboard#Executable'])
+  if not provider_ok or provider == '' then
+    vim.notify('No system clipboard provider is available', vim.log.levels.ERROR)
+    return
+  end
+
+  vim.fn.setreg('+', path)
+  vim.notify(string.format('Copied %s path: %s', label, path), vim.log.levels.INFO)
+  return path
+end
+
 -- ============================================================================
 -- WINDOW UTILITIES
 -- ============================================================================

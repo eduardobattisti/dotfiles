@@ -79,6 +79,10 @@ vim.keymap.set('n', '<leader>bn', '<cmd>bnext<cr>', { desc = '[B]uffer [N]ext' }
 vim.keymap.set('n', '<leader>bp', '<cmd>bprevious<cr>', { desc = '[B]uffer [P]revious' })
 vim.keymap.set('n', '<leader>ba', function() require('utils.builtin').delete_other_buffers() end,
   { desc = '[B]uffer delete [A]ll except current' })
+vim.keymap.set('n', '<leader>by', function() require('utils.builtin').copy_current_file_path() end,
+  { desc = '[B]uffer copy project-relative path' })
+vim.keymap.set('n', '<leader>bY', function() require('utils.builtin').copy_current_file_path { absolute = true } end,
+  { desc = '[B]uffer copy absolute path' })
 
 -- ============================================================================
 -- DIAGNOSTICS (Enhanced with severity filtering)
@@ -206,7 +210,7 @@ vim.keymap.set("n", "<leader>ur", "<Cmd>nohlsearch<Bar>diffupdate<Bar>normal! <C
 vim.keymap.set({ "n", "x" }, "<leader>cf", function()
   local ok, conform = pcall(require, "conform")
   if ok then
-    conform.format({ async = true, lsp_fallback = true })
+    conform.format({ async = true, lsp_format = 'fallback' })
   else
     vim.lsp.buf.format({ async = true })
   end

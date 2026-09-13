@@ -1,7 +1,41 @@
 return { -- Fuzzy Finder (files, lsp, etc)
   'nvim-telescope/telescope.nvim',
   cmd = 'Telescope',
-  event = 'VeryLazy',
+  keys = {
+    { '<leader>ff', '<cmd>Telescope find_files<cr>', desc = '[F]ind [F]iles' },
+    { '<leader>fg', '<cmd>Telescope live_grep_args<cr>', desc = '[F]ind by [G]rep' },
+    { '<leader>fb', '<cmd>Telescope buffers<cr>', desc = '[F]ind [B]uffers' },
+    { '<leader>fh', '<cmd>Telescope help_tags<cr>', desc = '[F]ind [H]elp' },
+    { '<leader>fw', '<cmd>Telescope grep_string<cr>', desc = '[F]ind current [W]ord' },
+    { '<leader>fd', '<cmd>Telescope diagnostics<cr>', desc = '[F]ind [D]iagnostics' },
+    { '<leader>fr', '<cmd>Telescope resume<cr>', desc = '[F]ind [R]esume' },
+    { '<leader>fo', '<cmd>Telescope oldfiles<cr>', desc = '[F]ind [O]ld files' },
+    {
+      '<leader>fn',
+      function()
+        require('telescope.builtin').find_files { cwd = vim.fn.stdpath 'config' }
+      end,
+      desc = '[F]ind [N]eovim files',
+    },
+    {
+      '<leader>f/',
+      function()
+        require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+          winblend = 10,
+          previewer = false,
+        })
+      end,
+      desc = '[F]ind in current buffer',
+    },
+  },
+  init = function()
+    local original_select = vim.ui.select
+    vim.ui.select = function(...)
+      vim.ui.select = original_select
+      require('lazy').load { plugins = { 'telescope.nvim' } }
+      return vim.ui.select(...)
+    end
+  end,
   branch = '0.1.x',
   dependencies = {
     'nvim-lua/plenary.nvim',
@@ -65,7 +99,7 @@ return { -- Fuzzy Finder (files, lsp, etc)
     -- Essential keymaps
     local builtin = require 'telescope.builtin'
     local telescope = require 'telescope'
-    
+
     vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = '[F]ind [F]iles' })
     vim.keymap.set('n', '<leader>fg', telescope.extensions.live_grep_args.live_grep_args, { desc = '[F]ind by [G]rep' })
     vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = '[F]ind [B]uffers' })
@@ -77,7 +111,7 @@ return { -- Fuzzy Finder (files, lsp, etc)
     vim.keymap.set('n', '<leader>fn', function()
       builtin.find_files { cwd = vim.fn.stdpath 'config' }
     end, { desc = '[F]ind [N]eovim files' })
-    
+
     -- Search in current buffer
     vim.keymap.set('n', '<leader>f/', function()
       builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {

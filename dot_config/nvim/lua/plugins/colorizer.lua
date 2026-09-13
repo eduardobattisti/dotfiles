@@ -1,5 +1,7 @@
 return {
   'brenoprata10/nvim-highlight-colors',
+  -- Tailwind's LSP already supplies colors; avoid another per-buffer scanner.
+  enabled = false,
   config = function()
     require('nvim-highlight-colors').setup {
       -- Render style

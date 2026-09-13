@@ -12,6 +12,7 @@ end
 local function safe_call(fn, fallback)
 	local success, result = pcall(fn)
 	if not success then
+		log_error("Action failed", result)
 		return fallback
 	end
 	return result

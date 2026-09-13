@@ -18,16 +18,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 
 local file_group = vim.api.nvim_create_augroup('FileManagement', { clear = true })
 
--- Auto-save when focus is lost
-vim.api.nvim_create_autocmd({ 'FocusLost', 'BufLeave' }, {
-  group = file_group,
-  desc = 'Auto-save when losing focus',
-  callback = function()
-    if vim.bo.modified and not vim.bo.readonly and vim.fn.expand('%') ~= '' and vim.bo.buftype == '' then
-      vim.cmd.write()
-    end
-  end,
-})
+-- Save explicitly: leaving a buffer must not write unfinished edits.
 
 -- Restore cursor position
 vim.api.nvim_create_autocmd('BufReadPost', {

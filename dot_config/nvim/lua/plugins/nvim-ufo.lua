@@ -4,6 +4,9 @@ return {
   event = 'BufReadPost',
   opts = {
     provider_selector = function(bufnr, filetype, buftype)
+      if buftype ~= '' or require('utils.buffer_policy').is_large(bufnr) then
+        return ''
+      end
       return { 'treesitter', 'indent' }
     end,
     preview = {

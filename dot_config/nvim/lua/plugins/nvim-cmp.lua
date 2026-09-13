@@ -66,6 +66,9 @@ return {
 
     cmp.setup {
       enabled = function()
+        if require('utils.buffer_policy').is_large(0) then
+          return false
+        end
         local context = require 'cmp.config.context'
         local buftype = vim.api.nvim_get_option_value('buftype', { buf = 0 })
         local filetype = vim.api.nvim_get_option_value('filetype', { buf = 0 })

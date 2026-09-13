@@ -209,3 +209,23 @@ committed.
 See [SETUP.md](SETUP.md) for troubleshooting and
 [dot_config/wezterm/KEYBINDINGS.md](dot_config/wezterm/KEYBINDINGS.md) for the
 terminal key map.
+# Configuration maintenance
+
+Edit managed settings in the chezmoi source and inspect `chezmoi diff` before
+applying. After intentional edits in Neovim's live config, merge them back into
+`dot_config/nvim`; do not overwrite source-only Laravel or formatter features.
+`chezmoi status` reports pending deployment differences.
+
+Run `bash tests/config_test.sh` (requires chezmoi, Zsh, Git and Neovim) and
+`bash tests/bootstrap_test.sh` before publishing changes. The configuration test
+renders templates without a generated chezmoi config, checks Lua/Zsh syntax,
+and verifies staged-only stashing. Tests use temporary directories.
+
+On native Windows, set `WEZTERM_WSL_DOMAIN` to the installed domain name when it
+differs from `WSL:Ubuntu`. Failed terminal commands stay open for inspection;
+successful exits close normally. The WSL/Linux environment must have `lazygit`
+on its executable PATH. LazyGit's staged-only stash shortcut requires Git 2.35+.
+
+Node's executable PATH follows NVM's default alias. Its resolution is cached
+and invalidated when NVM, alias files, or installed-version directories change.
+The parent shell still initializes NVM lazily.
