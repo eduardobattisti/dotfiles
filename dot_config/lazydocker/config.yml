@@ -69,7 +69,7 @@ customCommands:
     # View container IP address
     - name: ip address
       attach: false
-      command: 'docker inspect --format ''{{ "{{" }}.NetworkSettings.IPAddress{{ "}}" }}'' {{ .Container.ID }}'
+      command: 'docker inspect --format ''{{ "{{" }}range .NetworkSettings.Networks{{ "}}" }}{{ "{{" }}.IPAddress{{ "}}" }} {{ "{{" }}end{{ "}}" }}'' {{ .Container.ID }}'
       serviceNames: []
 
     # Live resource usage
