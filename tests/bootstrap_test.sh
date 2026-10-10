@@ -72,7 +72,7 @@ assert_contains "$(cat "$ROOT/scripts/windows-host.ps1")" '"Flameshot.Flameshot"
   "reconciles Flameshot through winget on Windows"
 assert_contains "$(cat "$ROOT/scripts/windows-host.ps1")" '"DBeaver.DBeaver.Community"' \
   "reconciles DBeaver Community through winget on Windows"
-assert_contains "$(cat "$ROOT/.chezmoiignore")" 'AppData/Roaming/flameshot/' \
+assert_contains "$(cat "$ROOT/.chezmoiignore")" 'AppData/**' \
   "selects the Windows Flameshot configuration path through chezmoi"
 assert_contains "$(cat "$ROOT/.chezmoiignore")" '**/DBeaverData/**' \
   "keeps DBeaver connections and credentials unmanaged"

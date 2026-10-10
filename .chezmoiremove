@@ -1,6 +1,5 @@
 # Legacy files removed from the active configuration. Chezmoi deletes these
 # targets during apply so stale auto-loaded Neovim/WezTerm modules do not remain.
-.config/htop/htoprc
 .config/nvim/after/ftplugin/.keep
 .config/nvim/after/queries/vue/.keep
 .config/nvim/lua/empty_init.lua

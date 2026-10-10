@@ -203,6 +203,8 @@ SETUP.md
 
 {{- if ne .chezmoi.os "windows" }}
 # Flameshot stores the same configuration under AppData on Windows. The
-# canonical contents live in .chezmoitemplates/flameshot.ini.
-AppData/Roaming/flameshot/
+# canonical contents live in .chezmoitemplates/flameshot.ini. Ignore the whole
+# tree so no empty AppData directories are created outside Windows.
+AppData
+AppData/**
 {{- end }}
