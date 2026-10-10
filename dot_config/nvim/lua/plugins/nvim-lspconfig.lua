@@ -160,12 +160,6 @@ return {
         get_language_id = function(_, filetype)
           return filetype == 'blade' and 'html' or filetype
         end,
-        on_attach = function(client, bufnr)
-          local filetype = vim.api.nvim_get_option_value('filetype', { buf = bufnr })
-          if filetype == 'vue' then
-            client.stop()
-          end
-        end,
       })
     )
 
@@ -298,7 +292,7 @@ return {
 
     vim.lsp.config('vtsls', {
       capabilities = capabilities,
-      handlers = vim.tbl_extend('force', handlers, require('config.lsp.servers.vtsls').handlers or {}),
+      handlers = handlers,
       on_attach = require('config.lsp.servers.vtsls').on_attach,
       filetypes = require('config.lsp.servers.vtsls').filetypes,
       settings = require('config.lsp.servers.vtsls').settings,

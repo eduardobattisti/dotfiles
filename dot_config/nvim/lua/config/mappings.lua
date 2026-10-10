@@ -45,11 +45,8 @@ vim.keymap.set('n', '<Right>', '<nop>', { desc = 'Use l instead' })
 -- WINDOW AND BUFFER MANAGEMENT
 -- ============================================================================
 
--- Window navigation
-vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move to left window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move to right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move to lower window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move to upper window' })
+-- Window navigation (<C-h/j/k/l>) is owned by plugins/smart-splits.lua so it
+-- also crosses into WezTerm panes.
 
 -- Window resizing
 vim.keymap.set('n', '<C-Left>', '<C-w><', { desc = 'Decrease window width' })
@@ -104,7 +101,7 @@ vim.keymap.set("n", "]e", diagnostic_goto(true, "ERROR"), { desc = "Next Error" 
 vim.keymap.set("n", "[e", diagnostic_goto(false, "ERROR"), { desc = "Prev Error" })
 vim.keymap.set("n", "]w", diagnostic_goto(true, "WARN"), { desc = "Next Warning" })
 vim.keymap.set("n", "[w", diagnostic_goto(false, "WARN"), { desc = "Prev Warning" })
-vim.keymap.set('n', 'D', vim.diagnostic.open_float, { desc = 'Show [D]iagnostic' })
+vim.keymap.set('n', '<leader>dd', vim.diagnostic.open_float, { desc = 'Show [D]iagnostic under cursor' })
 vim.keymap.set('n', '<leader>dq', function() require('utils.builtin').diagnostics_to_quickfix() end,
   { desc = '[D]iagnostics to [Q]uickfix' })
 vim.keymap.set('n', '<leader>dl', function() require('utils.builtin').diagnostics_to_loclist() end,
@@ -155,7 +152,7 @@ vim.keymap.set('n', '<leader>rp', '"+p', { desc = '[R]egister [P]aste from clipb
 -- ============================================================================
 
 -- Better paste behavior
-vim.keymap.set('v', 'p', '"_dP', { desc = 'Paste without yanking' })
+vim.keymap.set('x', 'p', 'P', { desc = 'Paste without yanking' })
 
 -- Line manipulation
 vim.keymap.set('n', '<A-j>', '<cmd>m .+1<cr>==', { desc = 'Move line down' })

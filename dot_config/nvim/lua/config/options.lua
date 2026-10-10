@@ -25,7 +25,7 @@ vim.opt.showmode = false
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-if vim.fn.has 'wsl' == 1 and vim.fn.executable 'clip.exe' == 1 and vim.fn.executable 'powershell.exe' == 1 then
+if vim.fn.has 'wsl' == 1 and vim.fn.executable 'powershell.exe' == 1 then
   local paste_command = {
     'powershell.exe',
     '-NoLogo',
@@ -34,11 +34,15 @@ if vim.fn.has 'wsl' == 1 and vim.fn.executable 'clip.exe' == 1 and vim.fn.execut
     '[Console]::Out.Write((Get-Clipboard -Raw).ToString().Replace("`r", ""))',
   }
 
+  -- Copy through OSC 52 (handled by WezTerm): clip.exe decodes its input with
+  -- the legacy console code page and corrupts non-ASCII text.
+  local osc52 = require 'vim.ui.clipboard.osc52'
+
   vim.g.clipboard = {
     name = 'WslClipboard',
     copy = {
-      ['+'] = { 'clip.exe' },
-      ['*'] = { 'clip.exe' },
+      ['+'] = osc52.copy '+',
+      ['*'] = osc52.copy '*',
     },
     paste = {
       ['+'] = paste_command,

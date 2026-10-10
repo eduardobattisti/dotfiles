@@ -27,12 +27,6 @@ local vue_plugin = {
   enableForWorkspaceTypeScriptVersions = true,
 }
 
-local handlers = {
-  ['textDocument/definition'] = function(err, result, method, ...)
-    vim.lsp.handlers['textDocument/definition'](err, result, method, ...)
-  end,
-}
-
 local settings = {
   complete_function_calls = true,
   vtsls = {
@@ -43,20 +37,10 @@ local settings = {
         enableServerSideFuzzyMatch = true,
       },
     },
-    ts_ls = {
-      globalPlugins = {
-        vue_plugin,
-      },
-    },
     tsserver = {
       globalPlugins = {
         vue_plugin,
       },
-    },
-  },
-  init_options = {
-    plugins = {
-      vue_plugin,
     },
   },
   typescript = TS_JS_CONFIG,
@@ -67,7 +51,8 @@ local actions = {
   {
     key = 'gD',
     callback = function()
-      local params = vim.lsp.util.make_position_params()
+      local client = vim.lsp.get_clients({ bufnr = 0, name = 'vtsls' })[1]
+      local params = vim.lsp.util.make_position_params(0, client and client.offset_encoding or 'utf-16')
       lsp_utils.lsp_execute {
         command = 'typescript.goToSourceDefinition',
         arguments = { params.textDocument.uri, params.position },
@@ -137,7 +122,6 @@ local filetypes = {
   'vue',
 }
 
-M.handlers = handlers
 M.settings = settings
 M.filetypes = filetypes
 M.on_attach = on_attach

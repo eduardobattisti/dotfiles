@@ -36,7 +36,7 @@ return {
     close_if_last_window = false,
     enable_git_status = true,
     enable_diagnostics = true,
-    sources = { 'filesystem', 'buffers', 'diagnostics', 'git_status' },
+    sources = { 'filesystem', 'buffers', 'git_status' },
     popup_border_style = 'rounded',
     source_selector = {
       winbar = true,
@@ -44,7 +44,6 @@ return {
       sources = {
         { source = 'filesystem', display_name = '󰉋 File' },
         { source = 'buffers', display_name = '󰈔 Bufs' },
-        { source = 'diagnostics', display_name = '󰒡 Diagnostic' },
         { source = 'git_status', display_name = '󰊤 Git' },
       },
     },
