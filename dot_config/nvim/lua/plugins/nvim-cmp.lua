@@ -215,16 +215,5 @@ return {
     })
 
     vim.api.nvim_set_hl(0, 'CmpGhostText', { link = 'Comment', default = true })
-    vim.api.nvim_set_hl(0, 'CmpItemAbbrDeprecated', { fg = '#7E8E91', strikethrough = true })
-    vim.api.nvim_set_hl(0, 'CmpItemAbbrMatch', { fg = '#569CD6', bold = true })
-    vim.api.nvim_set_hl(0, 'CmpItemAbbrMatchFuzzy', { fg = '#569CD6' })
-    vim.api.nvim_set_hl(0, 'CmpItemKindVariable', { fg = '#9CDCFE' })
-    vim.api.nvim_set_hl(0, 'CmpItemKindInterface', { fg = '#9CDCFE' })
-    vim.api.nvim_set_hl(0, 'CmpItemKindText', { fg = '#9CDCFE' })
-    vim.api.nvim_set_hl(0, 'CmpItemKindFunction', { fg = '#C586C0' })
-    vim.api.nvim_set_hl(0, 'CmpItemKindMethod', { fg = '#C586C0' })
-    vim.api.nvim_set_hl(0, 'CmpItemKindKeyword', { fg = '#D4D4D4' })
-    vim.api.nvim_set_hl(0, 'CmpItemKindProperty', { fg = '#D4D4D4' })
-    vim.api.nvim_set_hl(0, 'CmpItemKindUnit', { fg = '#D4D4D4' })
   end,
 }

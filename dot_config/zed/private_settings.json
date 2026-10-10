@@ -58,7 +58,7 @@
   },
   "theme": {
     "mode": "system",
-    "dark": "Gruvbox Dark Soft",
+    "dark": "Gruvbox Dark",
     "light": "Everforest Light Medium (material)"
   },
   "buffer_font_size": 14.0,

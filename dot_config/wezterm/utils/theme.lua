@@ -38,7 +38,7 @@ function Theme.setup(config)
 			[17] = c.gray,
 		},
 		ansi = {
-			c.bg4, -- black
+			c.bg2, -- black
 			c.red,
 			c.green,
 			c.yellow,
@@ -48,7 +48,7 @@ function Theme.setup(config)
 			c.fg,
 		},
 		brights = {
-			c.bg3, -- bright black
+			c.gray, -- bright black (dim text, shell autosuggestions)
 			c.red,
 			c.green,
 			c.yellow,

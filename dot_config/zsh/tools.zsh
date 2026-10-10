@@ -19,7 +19,8 @@ if [[ -r "$NVM_DIR/nvm.sh" ]]; then
   local default_node cache_file="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/nvm-default"
   local dependency signature="$NVM_DIR" cached_signature
   local -A node_stat
-  zmodload zsh/stat
+  # Load only zstat: the module's `stat` builtin would shadow /usr/bin/stat.
+  zmodload -F zsh/stat b:zstat
   for dependency in "$NVM_DIR/nvm.sh" "$NVM_DIR/alias"/**/*(.N) "$NVM_DIR/versions/node"/*(/N); do
     zstat -H node_stat -- "$dependency" || continue
     signature+="|$dependency:${node_stat[mtime]}:${node_stat[size]}"
@@ -36,6 +37,13 @@ if [[ -r "$NVM_DIR/nvm.sh" ]]; then
   fi
   [[ -x "$default_node" ]] && path=("${default_node:h}" $path)
 fi
+
+# Gruvbox Material (dark, medium) for CLI tools, matching WezTerm and Neovim.
+export BAT_THEME="gruvbox-dark"
+export FZF_DEFAULT_OPTS="\
+--color=bg+:#3c3836,bg:#282828,spinner:#89b482,hl:#7daea3 \
+--color=fg:#d4be98,header:#7daea3,info:#d8a657,pointer:#89b482 \
+--color=marker:#89b482,fg+:#d4be98,prompt:#d8a657,hl+:#7daea3,border:#5a524c"
 
 # Starship prompt (should be last — after all PATH and env changes)
 if (( $+commands[starship] )); then
