@@ -97,6 +97,7 @@ return {
       'blade-formatter',
       'prettierd',
       'stylua',
+      'tree-sitter-cli', -- builds parsers for nvim-treesitter
       'cssls',
       'css_variables',
       'html',

@@ -18,6 +18,21 @@ return {
     },
   },
   config = function(_, opts)
-    require("tailwind-sorter").setup(opts)
+    -- tailwind-sorter still calls `nvim-treesitter.parsers.get_parser`, which
+    -- the nvim-treesitter `main` branch removed. Give it the core equivalent
+    -- while it loads, without touching the real parsers module.
+    local parsers = package.loaded["nvim-treesitter.parsers"]
+    package.loaded["nvim-treesitter.parsers"] = {
+      get_parser = function(bufnr)
+        return vim.treesitter.get_parser(bufnr)
+      end,
+    }
+    local ok, err = pcall(function()
+      require("tailwind-sorter").setup(opts)
+    end)
+    package.loaded["nvim-treesitter.parsers"] = parsers
+    if not ok then
+      error(err)
+    end
   end,
 }

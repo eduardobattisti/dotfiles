@@ -2,6 +2,7 @@
 # targets during apply so stale auto-loaded Neovim/WezTerm modules do not remain.
 .config/nvim/after/ftplugin/.keep
 .config/nvim/after/queries/vue/.keep
+.config/nvim/lua/config/treesitter-compat.lua
 .config/nvim/lua/empty_init.lua
 .config/nvim/lua/plugins/ai.lua
 .config/nvim/lua/plugins/alpha-nvim.lua
