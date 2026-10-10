@@ -2,6 +2,9 @@
 # Modular configuration lives in ~/.config/zsh.
 {{- $paths := get . "paths" | default dict }}
 
+# lazygit and lazydocker only read ~/.config on macOS when this is set.
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+
 typeset -U path PATH
 path=(
   {{ get $paths "local_bin" | default (joinPath .chezmoi.homeDir ".local/bin") | quote }}

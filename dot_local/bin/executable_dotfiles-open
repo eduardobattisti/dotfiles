@@ -4,6 +4,10 @@ set -eu
 
 target="${1:-.}"
 
+is_wsl() {
+  [ -e /proc/sys/fs/binfmt_misc/WSLInterop ] || grep -qi microsoft /proc/version 2>/dev/null
+}
+
 case "$(uname -s)" in
   Darwin)
     exec open "$target"
@@ -11,6 +15,15 @@ case "$(uname -s)" in
   Linux)
     if command -v wslview >/dev/null 2>&1; then
       exec wslview "$target"
+    fi
+    if is_wsl; then
+      # explorer.exe opens URLs in the default browser and paths in their
+      # associated application; it exits non-zero even on success.
+      case "$target" in
+        *://*) explorer.exe "$target" || true ;;
+        *) explorer.exe "$(wslpath -w "$target")" || true ;;
+      esac
+      exit 0
     fi
     exec xdg-open "$target"
     ;;

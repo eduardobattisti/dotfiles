@@ -1,16 +1,11 @@
 # Custom functions
 
+# Open a file, directory or URL with the platform opener (macOS, Linux, WSL).
 function open() {
-  local opener
-  case "$OSTYPE" in
-    darwin*) opener="open" ;;
-    *) opener="xdg-open" ;;
-  esac
-
-  if command -v "$opener" >/dev/null 2>&1; then
-    command "$opener" "${1:-.}" >/dev/null 2>&1 &
+  if (( $+commands[dotfiles-open] )); then
+    command dotfiles-open "${1:-.}" >/dev/null 2>&1 &!
   else
-    print -u2 "No supported file opener found"
+    print -u2 "dotfiles-open not found in PATH"
     return 1
   fi
 }
