@@ -20,11 +20,22 @@ end
 
 -- Smart pane navigation that works with vim/nvim
 local function is_vim(pane)
-	-- Check if the current pane is running vim/nvim
-	local process_name = safe_call(function()
-		return string.gsub(pane:get_foreground_process_name(), "(.*[/\\])(.*)", "%2")
-	end, "")
-	return process_name == "nvim" or process_name == "vim"
+	-- Neovim sets this user var (nvim/lua/config/autocmds.lua). Unlike the
+	-- foreground process name it is also available for WSL, SSH and
+	-- multiplexer panes.
+	return pane:get_user_vars().IS_NVIM == "true"
+end
+
+-- Run a terminal tool through a login, interactive shell so it sees the PATH
+-- and environment from the shell configuration (~/.local/bin, Homebrew,
+-- XDG_CONFIG_HOME). On Windows the command runs inside the default WSL domain.
+function Keys.tool_args(tool)
+	local shell = platform.is_windows and "zsh" or (os.getenv("SHELL") or "/bin/sh")
+	return { shell, "-lic", "exec " .. tool }
+end
+
+local function spawn_tool(tool)
+	return act.SpawnCommandInNewTab({ args = Keys.tool_args(tool) })
 end
 
 -- Check if vim is in insert mode
@@ -140,36 +151,37 @@ end
 -- Project launcher (platform-aware)
 local function project_launcher()
 	return wezterm.action_callback(function(window, pane)
-		local home = platform.get_home_dir()
 		local projects = {}
 
-		-- Platform-specific default directories
 		if platform.is_windows then
-			table.insert(projects, { id = home .. "\\Documents", label = "~/Documents" })
-			table.insert(projects, { id = home .. "\\Downloads", label = "~/Downloads" })
-			table.insert(projects, { id = home .. "\\Desktop", label = "~/Desktop" })
+			-- Panes run inside WSL, so offer WSL paths and let its shell expand "~".
+			for _, dir in ipairs({ "~/projects", "~/.config", "~/.local/share/chezmoi" }) do
+				table.insert(projects, { id = dir, label = dir })
+			end
 		else
+			local home = platform.get_home_dir()
 			table.insert(projects, { id = home .. "/projects", label = "~/projects" })
 			table.insert(projects, { id = home .. "/.config", label = "~/.config" })
 			table.insert(projects, { id = home .. "/Documents", label = "~/Documents" })
 			table.insert(projects, { id = home .. "/Downloads", label = "~/Downloads" })
 			table.insert(projects, { id = "/tmp", label = "/tmp" })
-		end
 
-		-- Add git repositories if available (platform-aware)
-		safe_call(function()
-			local cmd
-			if platform.is_windows then
-				cmd = 'dir /s /b /ad "' .. home .. '\\.git" 2>nul | findstr /v "node_modules" | findstr /v "vendor"'
-			else
-				cmd = "find " .. home .. " -name '.git' -type d 2>/dev/null | head -20"
-			end
-
-			local handle = io.popen(cmd)
-			if handle then
-				for line in handle:lines() do
-					local project_dir = line:gsub("[\\/].git$", ""):gsub("[\\/].git[\\/].*$", "")
-					local project_name = project_dir:match("([^\\/]+)$")
+			-- Bounded, non-blocking search for repositories. Arguments are passed
+			-- as a list, so directory names are never parsed by a shell.
+			safe_call(function()
+				local _, stdout = wezterm.run_child_process({
+					"find",
+					home .. "/projects",
+					home .. "/.local/share/chezmoi",
+					"-maxdepth",
+					"3",
+					"-name",
+					".git",
+					"-prune",
+				})
+				for line in (stdout or ""):gmatch("[^\r\n]+") do
+					local project_dir = line:gsub("/%.git$", "")
+					local project_name = project_dir:match("([^/]+)$")
 					if project_name and project_name ~= "" then
 						table.insert(projects, {
 							id = project_dir,
@@ -177,25 +189,22 @@ local function project_launcher()
 						})
 					end
 				end
-				handle:close()
-			end
-		end)
+			end)
+		end
 
 		window:perform_action(
 			act.InputSelector({
-				action = wezterm.action_callback(function(inner_window, inner_pane, id, label)
+				action = wezterm.action_callback(function(inner_window, inner_pane, id)
 					if not id then
 						return
 					end
-					local shell_cmd
+					local spawn
 					if platform.is_windows then
-						shell_cmd = { "powershell.exe", "-NoLogo", "-NoExit", "-Command", "cd '" .. id .. "'" }
+						spawn = { args = { "zsh", "-lic", "cd " .. id .. " && exec zsh" } }
 					else
-						local shell = os.getenv("SHELL") or "zsh"
-						shell_cmd = { shell, "-c", "cd '" .. id .. "' && exec " .. shell }
+						spawn = { cwd = id }
 					end
-
-					inner_window:perform_action(act.SpawnCommandInNewTab({ args = shell_cmd }), inner_pane)
+					inner_window:perform_action(act.SpawnCommandInNewTab(spawn), inner_pane)
 				end),
 				title = "Select Project Directory",
 				choices = projects,
@@ -346,53 +355,12 @@ Keys.keys = {
 		}),
 	},
 
-	-- Quick applications and tools (with error handling)
-	{
-		key = "g",
-		mods = "LEADER",
-		action = wezterm.action_callback(function(window, pane)
-			safe_call(function()
-				window:perform_action(act.SpawnCommandInNewTab({ args = { "lazygit" } }), pane)
-			end)
-		end),
-	},
-	{
-		key = "d",
-		mods = "LEADER",
-		action = wezterm.action_callback(function(window, pane)
-			safe_call(function()
-				window:perform_action(act.SpawnCommandInNewTab({ args = { "lazydocker" } }), pane)
-			end)
-		end),
-	},
-	{
-		key = "f",
-		mods = "LEADER",
-		action = wezterm.action_callback(function(window, pane)
-			safe_call(function()
-				window:perform_action(act.SpawnCommandInNewTab({ args = { "ranger" } }), pane)
-			end)
-		end),
-	},
-	{
-		key = "m",
-		mods = "LEADER",
-		action = wezterm.action_callback(function(window, pane)
-			safe_call(function()
-				local cmd = platform.is_windows and { "btop" } or { "btop" }
-				window:perform_action(act.SpawnCommandInNewTab({ args = cmd }), pane)
-			end)
-		end),
-	},
-	{
-		key = "v",
-		mods = "LEADER",
-		action = wezterm.action_callback(function(window, pane)
-			safe_call(function()
-				window:perform_action(act.SpawnCommandInNewTab({ args = { "nvim" } }), pane)
-			end)
-		end),
-	},
+	-- Quick applications and tools
+	{ key = "g", mods = "LEADER", action = spawn_tool("lazygit") },
+	{ key = "d", mods = "LEADER", action = spawn_tool("lazydocker") },
+	{ key = "f", mods = "LEADER", action = spawn_tool("ranger") },
+	{ key = "m", mods = "LEADER", action = spawn_tool("btop") },
+	{ key = "v", mods = "LEADER", action = spawn_tool("nvim") },
 
 	-- Project and directory navigation
 	{ key = "o", mods = "LEADER", action = project_launcher() },
@@ -440,9 +408,10 @@ Keys.keys = {
 		}),
 	},
 
-	-- Debug and configuration
-	{ key = "F5", mods = "NONE", action = act.ReloadConfiguration },
-	{ key = "F12", mods = "NONE", action = act.ShowDebugOverlay },
+	-- Debug and configuration. Behind the leader so plain F5/F12 reach
+	-- applications such as nvim-dap.
+	{ key = "F5", mods = "LEADER", action = act.ReloadConfiguration },
+	{ key = "F12", mods = "LEADER", action = act.ShowDebugOverlay },
 
 	-- Leader key passthrough
 	{ key = "a", mods = "LEADER|CTRL", action = act.SendKey({ key = "a", mods = "CTRL" }) },

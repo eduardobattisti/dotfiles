@@ -165,8 +165,8 @@ To send Ctrl+A to the terminal itself, use **Leader + Ctrl+A**
 
 | Key Combination | Action |
 |----------------|--------|
-| `F5` | Reload configuration |
-| `F12` | Show debug overlay |
+| `Leader + F5` | Reload configuration |
+| `Leader + F12` | Show debug overlay |
 | `Ctrl+Shift + N` | New window |
 
 ---
@@ -185,7 +185,7 @@ To send Ctrl+A to the terminal itself, use **Leader + Ctrl+A**
 
 1. **Smart Navigation**: The `Ctrl + h/j/k/l` bindings work seamlessly with vim/nvim - they'll navigate vim splits when in vim, or WezTerm panes otherwise.
 
-2. **Project Launcher**: `Leader + o` automatically finds Git repositories in your home directory and common project locations.
+2. **Project Launcher**: `Leader + o` lists common directories and the Git repositories under `~/projects` (up to three levels deep).
 
 3. **Quick Commands**: Use `Leader + :` to run any command in a new tab without typing the full spawn command.
 
@@ -215,5 +215,5 @@ To send Ctrl+A to the terminal itself, use **Leader + Ctrl+A**
 └── KEYBINDINGS.md       # This file
 ```
 
-Use `F5` inside WezTerm to reload the configuration and `F12` to inspect the
+Use `Leader + F5` inside WezTerm to reload the configuration and `Leader + F12` to inspect the
 debug overlay if a module fails to load.

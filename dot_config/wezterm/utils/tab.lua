@@ -134,7 +134,7 @@ local function get_current_working_dir(tab)
 		return "~"
 	end
 
-	return string.format("%s", string.match(cwd, "[^/]+$"))
+	return cwd:match("[^/\\]+$") or cwd
 end
 
 function Tab.setup(config)

@@ -1,7 +1,6 @@
 local wezterm = require("wezterm")
 local platform = require("utils.platform")
 local session_manager = {}
-local os = wezterm.target_triple
 
 --- Displays a notification in WezTerm.
 -- @param message string: The notification message to be displayed.
@@ -62,7 +61,7 @@ local function save_to_json_file(data, file_path)
   end
 
   -- Ensure directory exists
-  local dir = file_path:match("(.*/)")
+  local dir = file_path:match("^(.*)[/\\]")
   if dir then
     platform.ensure_dir(dir)
   end
@@ -85,6 +84,10 @@ local function recreate_workspace(window, workspace_data)
     local path = platform.parse_cwd_uri(working_directory)
     if not path or path == "" then
       return platform.get_home_dir()
+    end
+    -- POSIX paths (including WSL panes on a Windows host) are used as-is.
+    if path:sub(1, 1) == "/" then
+      return path
     end
     return platform.normalize_path(path)
   end
@@ -279,8 +282,11 @@ end
 
 --- Orchestrator function to save the current workspace state.
 -- Collects workspace data, saves it to a JSON file, and displays a notification.
-function session_manager.save_state(window)
+function session_manager.save_state(window, name)
   local data = retrieve_workspace_data(window)
+  if name and name ~= "" then
+    data.name = name:gsub('[/\\:]', '_')
+  end
 
   -- Construct the file path based on the workspace name
   local session_dir = platform.get_session_dir()

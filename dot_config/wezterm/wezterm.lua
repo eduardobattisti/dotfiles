@@ -97,13 +97,6 @@ config.use_fancy_tab_bar = false
 config.show_new_tab_button_in_tab_bar = false
 config.hide_tab_bar_if_only_one_tab = true
 
--- Text rendering improvements
-config.foreground_text_hsb = {
-	hue = 1.0,
-	saturation = 1.2,
-	brightness = 1.5,
-}
-
 -- Window sizing
 config.initial_cols = 120
 config.initial_rows = 30
@@ -244,22 +237,13 @@ local function get_launch_menu()
 	end
 
 	-- Universal tools (if available)
-	table.insert(menu, {
-		label = "LazyGit",
-		args = { "lazygit" },
-	})
-	table.insert(menu, {
-		label = "LazyDocker",
-		args = { "lazydocker" },
-	})
-	table.insert(menu, {
-		label = "System Monitor",
-		args = (platform and platform.is_windows) and { "btop" } or { "btop" },
-	})
-	table.insert(menu, {
-		label = "File Manager",
-		args = { "ranger" },
-	})
+	local function tool_args(tool)
+		return keys_module and keys_module.tool_args(tool) or { tool }
+	end
+	table.insert(menu, { label = "LazyGit", args = tool_args("lazygit") })
+	table.insert(menu, { label = "LazyDocker", args = tool_args("lazydocker") })
+	table.insert(menu, { label = "System Monitor", args = tool_args("btop") })
+	table.insert(menu, { label = "File Manager", args = tool_args("ranger") })
 
 	return menu
 end
@@ -272,8 +256,10 @@ config.launch_menu = get_launch_menu()
 
 -- Session management events
 if session_manager then
-	wezterm.on("save_session", function(window)
-		session_manager.save_state(window)
+	-- The second argument is a name when emitted from the "Session name"
+	-- prompt and a pane object when emitted through act.EmitEvent.
+	wezterm.on("save_session", function(window, name)
+		session_manager.save_state(window, type(name) == "string" and name or nil)
 	end)
 
 	wezterm.on("load_session", function(window)

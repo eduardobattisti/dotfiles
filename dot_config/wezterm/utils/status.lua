@@ -5,7 +5,7 @@ local Status = {}
 
 -- Git cache with timestamps
 local git_cache = {}
-local cache_timeout_ms = 2000 -- 2 seconds
+local cache_ttl_seconds = 5
 
 local function log_error(msg, err)
 	wezterm.log_error("[Status] " .. msg .. ": " .. tostring(err))
@@ -23,123 +23,62 @@ local function safe_call(fn, fallback, err_msg)
 	return result
 end
 
--- Get current Git branch (with caching)
-local function get_git_branch(cwd)
+-- Branch and change counts from a single `git status` call (with caching).
+-- Arguments are passed as a list, so the directory name is never parsed by a
+-- shell, and the child process does not block the GUI thread.
+local function get_git_info(cwd)
 	if not cwd then
 		return nil
 	end
 
-	-- Check cache
 	local now = os.time()
 	local cached = git_cache[cwd]
-	if cached and cached.branch_timestamp and (now - cached.branch_timestamp) < (cache_timeout_ms / 1000) then
-		return cached.branch
+	if cached and (now - cached.timestamp) < cache_ttl_seconds then
+		return cached.info
 	end
 
-	-- Fetch from git
-	local branch = safe_call(function()
-		local git_cmd = platform.get_git_cmd()
-		local cmd = string.format('cd "%s" && %s branch --show-current 2>/dev/null', cwd, git_cmd)
-
-		if platform.is_windows then
-			cmd = string.format('cd /d "%s" && %s branch --show-current 2>nul', cwd, git_cmd)
-		end
-
-		local handle = io.popen(cmd)
-		if not handle then
+	local info = safe_call(function()
+		local ok, stdout = wezterm.run_child_process({
+			platform.get_git_cmd(),
+			"-C",
+			cwd,
+			"status",
+			"--porcelain=v2",
+			"--branch",
+		})
+		if not ok or not stdout then
 			return nil
 		end
 
-		local result = handle:read("*a")
-		handle:close()
-
-		if result then
-			result = result:gsub("\n", ""):gsub("\r", "")
-			if result ~= "" then
-				return result
-			end
-		end
-		return nil
-	end, nil)
-
-	-- Update cache
-	if not git_cache[cwd] then
-		git_cache[cwd] = {}
-	end
-	git_cache[cwd].branch = branch
-	git_cache[cwd].branch_timestamp = now
-
-	return branch
-end
-
--- Get Git status info (with caching)
-local function get_git_status(cwd)
-	if not cwd then
-		return nil
-	end
-
-	-- Check cache
-	local now = os.time()
-	local cached = git_cache[cwd]
-	if cached and cached.status_timestamp and (now - cached.status_timestamp) < (cache_timeout_ms / 1000) then
-		return cached.status
-	end
-
-	-- Fetch from git
-	local status = safe_call(function()
-		local git_cmd = platform.get_git_cmd()
-		local cmd = string.format('cd "%s" && %s status --porcelain 2>/dev/null', cwd, git_cmd)
-
-		if platform.is_windows then
-			cmd = string.format('cd /d "%s" && %s status --porcelain 2>nul', cwd, git_cmd)
-		end
-
-		local handle = io.popen(cmd)
-		if not handle then
-			return nil
-		end
-
-		local output = handle:read("*a")
-		handle:close()
-
-		if not output or output == "" then
-			return nil
-		end
-
-		local modified = 0
-		local added = 0
-		local deleted = 0
-		local untracked = 0
-
-		for line in output:gmatch("[^\r\n]+") do
-			local status_char = line:sub(1, 2)
-			if status_char:match("^M") or status_char:match("^.M") then
-				modified = modified + 1
-			elseif status_char:match("^A") or status_char:match("^.A") then
-				added = added + 1
-			elseif status_char:match("^D") or status_char:match("^.D") then
-				deleted = deleted + 1
-			elseif status_char:match("^%?%?") then
-				untracked = untracked + 1
+		local result = { branch = nil, modified = 0, added = 0, deleted = 0, untracked = 0 }
+		for line in stdout:gmatch("[^\r\n]+") do
+			local head = line:match("^# branch%.head (.+)$")
+			if head then
+				result.branch = head
+			elseif line:sub(1, 2) == "? " then
+				result.untracked = result.untracked + 1
+			else
+				local xy = line:match("^[12u] (%S%S)")
+				if xy then
+					if xy:find("M") then
+						result.modified = result.modified + 1
+					elseif xy:find("A") then
+						result.added = result.added + 1
+					elseif xy:find("D") then
+						result.deleted = result.deleted + 1
+					end
+				end
 			end
 		end
 
-		return {
-			modified = modified,
-			added = added,
-			deleted = deleted,
-			untracked = untracked,
-		}
+		if not result.branch or result.branch == "(detached)" then
+			return nil
+		end
+		return result
 	end, nil)
 
-	-- Update cache
-	if not git_cache[cwd] then
-		git_cache[cwd] = {}
-	end
-	git_cache[cwd].status = status
-	git_cache[cwd].status_timestamp = now
-
-	return status
+	git_cache[cwd] = { info = info, timestamp = now }
+	return info
 end
 
 -- Format Git information
@@ -149,30 +88,30 @@ local function format_git(branch, status, colors)
 	end
 
 	local elements = {
-		{ Foreground = { Color = colors.orange or "#e69875" } },
+		{ Foreground = { Color = colors.orange } },
 		{ Text = " " .. branch },
 	}
 
 	if status then
 		if status.modified > 0 then
-			table.insert(elements, { Foreground = { Color = colors.yellow or "#dbbc7f" } })
+			table.insert(elements, { Foreground = { Color = colors.yellow } })
 			table.insert(elements, { Text = " ~" .. status.modified })
 		end
 		if status.added > 0 then
-			table.insert(elements, { Foreground = { Color = colors.green or "#a7c080" } })
+			table.insert(elements, { Foreground = { Color = colors.green } })
 			table.insert(elements, { Text = " +" .. status.added })
 		end
 		if status.deleted > 0 then
-			table.insert(elements, { Foreground = { Color = colors.red or "#e67e80" } })
+			table.insert(elements, { Foreground = { Color = colors.red } })
 			table.insert(elements, { Text = " -" .. status.deleted })
 		end
 		if status.untracked > 0 then
-			table.insert(elements, { Foreground = { Color = colors.purple or "#d699b6" } })
+			table.insert(elements, { Foreground = { Color = colors.purple } })
 			table.insert(elements, { Text = " ?" .. status.untracked })
 		end
 	end
 
-	table.insert(elements, { Foreground = { Color = colors.fg or "#d3c6aa" } })
+	table.insert(elements, { Foreground = { Color = colors.fg } })
 	table.insert(elements, { Text = " " })
 
 	return elements
@@ -190,9 +129,9 @@ local function format_git_minimal(branch, colors)
 	end
 
 	return {
-		{ Foreground = { Color = colors.orange or "#e69875" } },
+		{ Foreground = { Color = colors.orange } },
 		{ Text = " " .. branch },
-		{ Foreground = { Color = colors.fg or "#d3c6aa" } },
+		{ Foreground = { Color = colors.fg } },
 		{ Text = " " },
 	}
 end
@@ -208,13 +147,13 @@ function Status.setup(config, colors, opts)
 	local show_git = opts.show_git ~= false
 
 	-- Right status with git info and workspace
-	wezterm.on("update-right-status", function(window, pane)
+	local function update_right_status(window, pane)
 		local elements = {}
 
 		if not minimal then
 			-- Leader key indicator (full mode only)
 			if window:leader_is_active() then
-				table.insert(elements, { Foreground = { Color = colors.orange or "#e69875" } })
+				table.insert(elements, { Foreground = { Color = colors.orange } })
 				table.insert(elements, { Text = " 🔑 " })
 			end
 		end
@@ -224,14 +163,13 @@ function Status.setup(config, colors, opts)
 
 		-- Git information (caching active in both modes)
 		if show_git and cwd then
-			local branch = get_git_branch(cwd)
-			if branch then
+			local info = get_git_info(cwd)
+			if info then
 				local git_elements
 				if minimal then
-					git_elements = format_git_minimal(branch, colors)
+					git_elements = format_git_minimal(info.branch, colors)
 				else
-					local git_status = get_git_status(cwd)
-					git_elements = format_git(branch, git_status, colors)
+					git_elements = format_git(info.branch, info, colors)
 				end
 				for _, element in ipairs(git_elements) do
 					table.insert(elements, element)
@@ -243,7 +181,7 @@ function Status.setup(config, colors, opts)
 			-- Key table mode indicator (full mode only)
 			local key_table = window:active_key_table()
 			if key_table then
-				table.insert(elements, { Foreground = { Color = colors.blue or "#7fbbb3" } })
+				table.insert(elements, { Foreground = { Color = colors.blue } })
 				table.insert(elements, { Text = " 📋 " .. key_table .. " " })
 			end
 		end
@@ -254,19 +192,19 @@ function Status.setup(config, colors, opts)
 
 		if show_workspace then
 			if #elements > 0 then
-				table.insert(elements, { Foreground = { Color = colors.bg3 or "#56635f" } })
+				table.insert(elements, { Foreground = { Color = colors.bg3 } })
 				table.insert(elements, { Text = "│ " })
 			end
 
-			table.insert(elements, { Foreground = { Color = colors.blue or "#7fbbb3" } })
+			table.insert(elements, { Foreground = { Color = colors.blue } })
 			table.insert(elements, { Text = workspace .. " " })
 		end
 
 		window:set_right_status(wezterm.format(elements))
-	end)
+	end
 
 	-- Left status
-	wezterm.on("update-status", function(window, pane)
+	local function update_left_status(window, pane)
 		local tab_count = #window:mux_window():tabs()
 		local active_tab = window:active_tab()
 		local tab_index = 0
@@ -283,24 +221,30 @@ function Status.setup(config, colors, opts)
 		if minimal then
 			-- Minimal: just tab count
 			if tab_count > 1 then
-				table.insert(elements, { Foreground = { Color = colors.yellow or "#dbbc7f" } })
+				table.insert(elements, { Foreground = { Color = colors.yellow } })
 				table.insert(elements, { Text = string.format(" %d/%d ", tab_index, tab_count) })
 			end
 		else
 			-- Full: hostname + tab count
 			local hostname = wezterm.hostname()
-			table.insert(elements, { Foreground = { Color = colors.fg or "#d3c6aa" } })
+			table.insert(elements, { Foreground = { Color = colors.fg } })
 			table.insert(elements, { Text = string.format(" %s ", hostname) })
 
 			if tab_count > 1 then
-				table.insert(elements, { Foreground = { Color = colors.bg3 or "#56635f" } })
+				table.insert(elements, { Foreground = { Color = colors.bg3 } })
 				table.insert(elements, { Text = "│ " })
-				table.insert(elements, { Foreground = { Color = colors.yellow or "#dbbc7f" } })
+				table.insert(elements, { Foreground = { Color = colors.yellow } })
 				table.insert(elements, { Text = string.format("%d/%d ", tab_index, tab_count) })
 			end
 		end
 
 		window:set_left_status(wezterm.format(elements))
+	end
+
+	-- "update-right-status" is deprecated; one handler updates both sides.
+	wezterm.on("update-status", function(window, pane)
+		update_right_status(window, pane)
+		update_left_status(window, pane)
 	end)
 
 	-- Enhanced window title
